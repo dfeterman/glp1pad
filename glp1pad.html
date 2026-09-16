@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>GLP-1 Pad, Prescriber Companion</title>
+<style>
+<style>
+  :root{
+    /* GLP-1 Pad runs a cool surface and a teal accent so it never gets
+       mistaken for RheumPad or WholePad, which share an identical warm
+       palette. Everything structural below is theirs, unchanged. */
+    --bg:#eef2f2; --card:#ffffff; --ink:#1f272b; --muted:#64727a;
+    --accent:#116b5e; --accent-soft:#dcedea; --accent-ink:#0b4b42;
+    --line:#dae1e1;
+    /* Severity ramp for the side effect tab. Monotonic by design:
+       green, amber, burnt orange, red. A red flag renders as a filled
+       block with white text, never as one more chip. */
+    --sev-mild:#15803d;  --sev-mild-soft:#e3efe0;
+    --sev-mod:#b45309;   --sev-mod-soft:#fdf1cd;
+    --sev-high:#c2410c;  --sev-high-soft:#fde6da;
+    --sev-flag:#991b1b;  --sev-flag-soft:#fce3e3;
+    /* Legacy aliases so the ported RheumPad components keep working. */
+    --tender:#b45309; --tender-soft:#fdf1cd;
+    --swollen:#116b5e; --swollen-soft:#dcedea;
+    --both:#991b1b; --both-soft:#fce3e3;
+    --ok:#15803d; --ok-soft:#e3efe0; --radius:12px;
+    --shadow:0 1px 3px rgba(20,40,45,.08), 0 4px 14px rgba(20,40,45,.05);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{font-size:15px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5; padding-bottom:80px;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit; font-size:.95rem; color:var(--ink);}
+
+  header.app{position:sticky; top:0; z-index:50; background:#fffefb; border-bottom:1px solid var(--line);
+    padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:baseline; gap:8px;}
+  .brand h1{font-size:1.15rem; letter-spacing:-.01em;}
+  .brand h1 .pad{color:var(--accent);}
+  .brand small{color:var(--muted); font-size:.72rem;}
+  .searchwrap{flex:1; min-width:220px; max-width:520px; position:relative;}
+  .searchwrap input{width:100%; padding:8px 12px 8px 34px; border:1px solid var(--line); border-radius:999px;
+    background:var(--bg); outline:none;}
+  .searchwrap input:focus{border-color:var(--accent); background:#fff;}
+  .searchwrap .mag{position:absolute; left:12px; top:8px; color:var(--muted); font-size:.9rem;}
+  .hdr-actions{display:flex; gap:8px;}
+  .btn{border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:8px;
+    padding:7px 13px; font-size:.85rem; transition:all .12s;}
+  .btn:hover{border-color:var(--accent); color:var(--accent);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.primary:hover{background:var(--accent-ink); color:#fff;}
+  .btn.small{padding:4px 10px; font-size:.78rem;}
+  .btn.danger:hover{border-color:var(--both); color:var(--both);}
+
+  nav.tabs{display:flex; gap:4px; padding:10px 20px 0; max-width:1180px; margin:0 auto; flex-wrap:wrap;}
+  nav.tabs button{border:none; background:transparent; padding:9px 15px; border-radius:9px 9px 0 0;
+    font-size:.92rem; color:var(--muted); border-bottom:2.5px solid transparent;}
+  nav.tabs button:hover{color:var(--ink); background:#efeadf;}
+  nav.tabs button.active{color:var(--accent-ink); border-bottom-color:var(--accent); font-weight:600; background:#fff;}
+
+  #favbar{max-width:1180px; margin:0 auto; padding:10px 20px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  #favbar .favlabel{font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  #favbar:not(:has(.chip)){display:none;}
+
+  main{max-width:1180px; margin:0 auto; padding:16px 20px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;}
+  .tab-intro{color:var(--muted); font-size:.88rem; margin-bottom:14px;}
+
+  .chip{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:#fff;
+    border-radius:999px; padding:5px 13px; font-size:.85rem; transition:all .12s; user-select:none;}
+  .chip:hover{border-color:var(--accent); color:var(--accent); box-shadow:var(--shadow);}
+  .chip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .chip.cat{background:var(--bg);}
+  .chip.cat.on{background:var(--accent); color:#fff;}
+
+  .cardgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow); cursor:pointer; transition:all .12s; position:relative;}
+  .card:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .card h3{font-size:.95rem; margin-bottom:2px; padding-right:26px;}
+  .card .dot{font-size:.75rem; color:var(--accent); font-weight:600;}
+  .card .cat{font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .card p.preview{font-size:.8rem; color:var(--muted); margin-top:6px; display:-webkit-box;
+    -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .card .star{position:absolute; top:10px; right:12px; font-size:1rem; color:#d8ccbc; background:none; border:none; padding:2px;}
+  .card .star.faved{color:#f59e0b;}
+  .card .star:hover{color:#f59e0b;}
+  .catrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  h2.sect{font-size:1.05rem; margin:18px 0 10px;}
+  .empty{color:var(--muted); font-size:.88rem; padding:24px; text-align:center; border:1.5px dashed var(--line); border-radius:var(--radius);}
+
+  /* Modal */
+  #overlay{position:fixed; inset:0; background:rgba(30,36,50,.45); z-index:100; display:none;
+    align-items:flex-start; justify-content:center; padding:5vh 16px 16px; overflow-y:auto;}
+  #overlay.open{display:flex;}
+  #modal{background:#fff; border-radius:14px; max-width:760px; width:100%; padding:22px 24px;
+    box-shadow:0 10px 40px rgba(30,36,50,.25);}
+  #modal h3{font-size:1.05rem; margin-bottom:2px;}
+  #modal .cat{font-size:.75rem; color:var(--muted); margin-bottom:12px;}
+  .filled{background:#fbf9f4; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+    font-size:.92rem; white-space:pre-wrap; margin:10px 0; line-height:1.9;}
+  .filled input[type=text]{border:none; border-bottom:1.5px solid var(--accent); background:var(--accent-soft);
+    border-radius:4px 4px 0 0; padding:2px 7px; min-width:70px; outline:none;}
+  .filled select{border:1.5px solid var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 6px; outline:none;}
+  .modal-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap;}
+
+  #toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:9px 20px; border-radius:999px; font-size:.85rem;
+    opacity:0; pointer-events:none; transition:all .25s; z-index:200;}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* Composer */
+  .comp-section{background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:12px; box-shadow:var(--shadow);}
+  .comp-section h4{font-size:.85rem; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--accent-ink); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .comp-body{font-size:.92rem; white-space:pre-wrap; line-height:2;}
+  .comp-body input[type=text]{border:none; border-bottom:1.5px solid var(--accent); background:var(--accent-soft);
+    border-radius:4px 4px 0 0; padding:2px 7px; min-width:70px; outline:none;}
+  .comp-body select{border:1.5px solid var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 6px; outline:none;}
+  .comp-top{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .comp-top h2{font-size:1.1rem;}
+  /* Modular notes: disease picker + section chips */
+  .modpick{display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--accent-soft);
+    border:1.5px solid var(--accent); border-radius:var(--radius); padding:10px 14px; margin-bottom:10px;}
+  .modpick label{font-weight:700; font-size:.9rem;}
+  .modpick select{border:1.5px solid var(--accent); background:#fff; border-radius:6px;
+    padding:6px 10px; font-size:.95rem; font-weight:600; outline:none; min-width:230px;}
+  .modhint{font-size:.78rem; color:var(--muted); flex:1 1 240px;}
+  .secbar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .seclab{font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin-right:2px;}
+  .secchip{border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:999px;
+    padding:3px 10px; font-size:.75rem; cursor:pointer; font-family:inherit;}
+  .secchip.on{border-color:var(--accent); background:var(--accent-soft); color:var(--ink); font-weight:600;}
+  .card.modcard{border-color:var(--accent); border-width:1.5px;}
+
+  /* Pre-chart */
+  .pc-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
+    margin-bottom:14px; box-shadow:var(--shadow);}
+  .pc-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .pc-num{background:var(--accent); color:#fff; border-radius:9px; width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center; font-weight:700;}
+  .pc-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:700px){.pc-grid{grid-template-columns:1fr;}}
+  .pc-field label{font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:block; margin-bottom:4px;}
+  .pc-field input[type=text],.pc-field select,.pc-field textarea{width:100%; border:1px solid var(--line);
+    border-radius:8px; padding:7px 10px; outline:none; background:#fbf9f4;}
+  .pc-field textarea{min-height:56px; resize:vertical;}
+  .pc-field input:focus,.pc-field textarea:focus,.pc-field select:focus{border-color:var(--accent);}
+  .pc-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .pc-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap;}
+
+  /* Settings */
+  .set-block{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
+    margin-bottom:14px; box-shadow:var(--shadow);}
+  .set-block h3{font-size:1rem; margin-bottom:6px;}
+  .set-block p.hint{font-size:.83rem; color:var(--muted); margin-bottom:10px;}
+  .ed-row{display:flex; gap:8px; align-items:center; padding:7px 4px; border-bottom:1px solid var(--line); font-size:.88rem;}
+  .ed-row:last-child{border-bottom:none;}
+  .ed-row .nm{flex:1; font-weight:600;}
+  .ed-row .ct{color:var(--muted); font-size:.78rem;}
+  .ed-form{display:grid; gap:10px; margin-top:10px;}
+  .ed-form label{font-size:.78rem; color:var(--muted); display:block; margin-bottom:3px;}
+  .ed-form input[type=text],.ed-form select,.ed-form textarea{width:100%; border:1px solid var(--line);
+    border-radius:8px; padding:7px 10px; outline:none;}
+  .ed-form textarea{min-height:110px; resize:vertical; font-size:.88rem;}
+  code.syn{background:var(--accent-soft); color:var(--accent-ink); border-radius:5px; padding:1px 6px; font-size:.8rem;}
+  .savebadge{font-size:.75rem; color:var(--ok); background:var(--ok-soft); border-radius:999px; padding:3px 10px;}
+  .warnbadge{font-size:.75rem; color:#92400e; background:#fef3c7; border-radius:999px; padding:3px 10px;}
+
+  .statinput{width:58px; border:none; font-size:1.3rem; color:var(--accent-ink); font-weight:700;
+    background:transparent; outline:none; border-bottom:1.5px dashed var(--line);}
+  .statinput:focus{border-bottom-color:var(--accent);}
+
+  /* Quick launcher */
+  #qwrap{position:fixed; inset:0; background:rgba(30,36,50,.35); z-index:150; display:none;
+    align-items:flex-start; justify-content:center; padding-top:12vh;}
+  #qwrap.open{display:flex;}
+  #qbox{background:#fff; border-radius:12px; width:min(560px,92vw); box-shadow:0 10px 40px rgba(30,36,50,.3); overflow:hidden;}
+  #qinput{width:100%; border:none; outline:none; padding:14px 18px; font-size:1.05rem; border-bottom:1px solid var(--line);}
+  #qlist{max-height:320px; overflow-y:auto;}
+  .qrow{padding:9px 18px; display:flex; gap:10px; align-items:baseline; cursor:pointer; font-size:.92rem;}
+  .qrow.sel{background:var(--accent-soft);}
+  .qrow .qdot{color:var(--accent); font-weight:600; min-width:92px;}
+  .qrow .qkind{margin-left:auto; color:var(--muted); font-size:.75rem;}
+  #qhint{padding:8px 18px; color:var(--muted); font-size:.75rem; border-top:1px solid var(--line);}
+
+  /* Drug cards */
+  .drugblock{margin-bottom:10px;}
+  .drugblock b{font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-ink); display:block; margin-bottom:2px;}
+  .drugblock.warn b{color:var(--both);}
+  .drugblock p{font-size:.9rem;}
+  .langtoggle{display:inline-flex; border:1.5px solid var(--accent); border-radius:999px; overflow:hidden; margin-bottom:6px;}
+  .langtoggle button{border:none; background:#fff; padding:5px 16px; font-size:.85rem; font-weight:600; color:var(--accent-ink);}
+  .langtoggle button.on{background:var(--accent); color:#fff;}
+  .langhint{font-size:.78rem; color:var(--accent-ink); margin-left:10px;}
+  .esbadge{display:inline-block; font-size:.62rem; font-weight:700; letter-spacing:.04em; color:#fff;
+    background:var(--accent); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:2px;}
+  .micbtn{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;}
+  .micbtn.rec{background:var(--both); border-color:var(--both); color:#fff; animation:micpulse 1.2s infinite;}
+  .micbtn-off{opacity:.6;}
+  .calc-attr{margin:0 0 10px; padding:11px 15px; border-radius:10px; background:#fffefb;
+    border:1px solid var(--line); font-size:.79rem; line-height:1.5; color:var(--muted);}
+  .calc-attr h5{font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:var(--accent-ink); margin-bottom:6px;}
+  .calc-attr p{margin:0 0 5px;}
+  .calc-attr p:last-child{margin-bottom:0;}
+  .calc-attr b{color:var(--ink); font-weight:600;}
+  .calc-attr .lic{color:var(--accent-ink);}
+  .calc-attr a, #calc-body a{color:var(--accent-ink); font-weight:600; text-decoration:underline; word-break:break-all;}
+  .calc-attr a:hover, #calc-body a:hover{opacity:.75;}
+  #dictbar{margin-bottom:12px; padding:9px 14px; border-radius:10px; font-size:.85rem;
+    background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-ink);}
+  #dictbar.bad{background:#fef3c7; border-color:#f2d48a; color:#92400e;}
+  @keyframes micpulse{0%,100%{opacity:1;} 50%{opacity:.55;}}
+
+  #backupbar{display:none; max-width:1180px; margin:10px auto 0; padding:9px 16px; border-radius:10px;
+    background:#fef3c7; border:1px solid #f2d48a; color:#92400e; font-size:.85rem;
+    align-items:center; gap:10px; flex-wrap:wrap;}
+  #backupbar.show{display:flex;}
+  #backupbar span{flex:1; min-width:200px;}
+
+  .helpblock{margin-bottom:12px;}
+  .helpblock b{display:block; font-size:.8rem; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-ink); margin-bottom:2px;}
+  .helpblock p{font-size:.9rem;}
+  .modfoot{font-size:.78rem; color:var(--muted); margin:14px 4px 4px;}
+  #accuracybar{font-size:.76rem; color:var(--muted); padding:7px 18px 0;}
+  #accuracybar b{color:var(--ink);}
+  #doseguard{max-width:1180px; margin:8px auto 0; padding:8px 16px; border-radius:10px;
+    background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-ink); font-size:.82rem;}
+  #doseguard b{color:var(--accent-ink);}
+  /* Severity chips and the red flag block, used by the side effect tab. */
+  .sev{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:3px 11px;
+    font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+  .sev.mild{background:var(--sev-mild-soft); color:var(--sev-mild);}
+  .sev.mod{background:var(--sev-mod-soft); color:var(--sev-mod);}
+  .sev.high{background:var(--sev-high-soft); color:var(--sev-high);}
+  .redflag{background:var(--sev-flag); color:#fff; border-radius:var(--radius); padding:14px 16px; margin:12px 0;}
+  .redflag h4{font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; color:#fff;}
+  .redflag p, .redflag li{font-size:.9rem; color:#fff;}
+  .redflag ul{padding-left:18px; margin-top:4px;}
+  .guidetag{display:inline-block; font-size:.7rem; color:var(--muted); border:1px solid var(--line);
+    border-radius:999px; padding:2px 10px; margin-top:8px;}
+  .actbadge{font-size:.72rem; font-weight:700; border-radius:999px; padding:3px 11px; text-transform:uppercase; letter-spacing:.05em;}
+  .actbadge.go{background:var(--ok-soft); color:var(--ok);}
+  .actbadge.hold{background:var(--tender-soft); color:#92400e;}
+  .actbadge.time{background:var(--swollen-soft); color:#1d4ed8;}
+  .actbadge.none{background:var(--line); color:var(--muted);}
+  .po-dates{display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;}
+  .po-dates div{font-size:.85rem;}
+  .po-dates b{display:block; font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+  kbd{background:var(--bg); border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 6px; font-size:.8rem; font-family:inherit;}
+
+  /* Small screens */
+  @media(max-width:720px){
+    html{font-size:14px;}
+    header.app{padding:8px 12px; gap:8px;}
+    .brand small{display:none;}
+    nav.tabs{flex-wrap:nowrap; overflow-x:auto; padding:8px 12px 0; gap:2px; scrollbar-width:none;}
+    nav.tabs::-webkit-scrollbar{display:none;}
+    nav.tabs button{white-space:nowrap; padding:8px 11px; flex:0 0 auto;}
+    main{padding:12px;}
+    #favbar, #backupbar, #doseguard{padding-left:12px; padding-right:12px;}
+    .searchwrap{min-width:130px;}
+    #modal{padding:16px;}
+    .pc-grid{grid-template-columns:1fr;}
+  }
+
+  /* Print */
+  #printsheet, #printpacket{display:none;}
+  @media print{
+    @page{ size: letter; margin: 0.5in; }
+    html, body{margin:0 !important; padding:0 !important; background:#fff !important;}
+    body > *:not(#printsheet):not(#printpacket){display:none !important;}
+    #printsheet{display:block !important; color:#000; font-size:12pt; padding:0;}
+    #printsheet h1{font-size:15pt; margin:0 0 2px 0;}
+    #printsheet .clin{font-size:10pt; color:#333; border-bottom:1.5px solid #333; padding-bottom:5px; margin-bottom:11px;}
+    #printsheet pre{white-space:pre-wrap; font-family:inherit; font-size:12pt; line-height:1.6; margin:0;}
+    #printsheet .foot{margin-top:12px; font-size:9pt; color:#555; border-top:1px solid #999; padding-top:5px;}
+
+    /* Half page: the plan prints twice on one sheet with a cut line between. */
+    #pr-cut, #pr-copy2{display:none;}
+    #printsheet.half #pr-cut{display:block; margin:0; border-top:1px dashed #999; height:0.34in; position:relative;}
+    #printsheet.half #pr-cut span{position:absolute; left:0; top:3px; font-size:7.5pt; color:#999; letter-spacing:.06em; text-transform:uppercase;}
+    #printsheet.half #pr-copy2{display:block;}
+    #printsheet.half h1{font-size:13pt;}
+    #printsheet.half .clin{margin-bottom:8px; padding-bottom:4px;}
+    #printsheet.half .foot{margin-top:8px;}
+
+    /* Handout packet: several sheets, one print job. */
+    body.packet #printsheet{display:none !important;}
+    body.packet #printpacket{display:block !important; color:#000;}
+    #printpacket .pk{page-break-after:always; break-after:page;}
+    #printpacket .pk:last-child{page-break-after:auto; break-after:auto;}
+    #printpacket h1{font-size:15pt; margin:0 0 2px 0;}
+    #printpacket .clin{font-size:10pt; color:#333; border-bottom:1.5px solid #333; padding-bottom:5px; margin-bottom:11px;}
+    #printpacket pre{white-space:pre-wrap; font-family:inherit; margin:0;}
+    #printpacket .foot{margin-top:12px; font-size:9pt; color:#555; border-top:1px solid #999; padding-top:5px;}
+  }
+</style>
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><h1>GLP-1<span class="pad">Pad</span></h1><small>prescriber companion &middot; no PHI &middot; <b id="buildstamp">v0.1</b></small></div>
+  <div class="searchwrap"><span class="mag">&#128269;</span>
+    <input id="globalsearch" type="text" placeholder="Search phrases, handouts, codes… (like typing a dot phrase)">
+  </div>
+  <div class="hdr-actions">
+    <button class="btn small" title="How GLP-1 Pad works" onclick="App.help()">?</button>
+    <button class="btn small" onclick="App.exportData()">Export</button>
+    <button class="btn small" onclick="document.getElementById('importfile').click()">Import</button>
+    <input type="file" id="importfile" accept=".json" style="display:none" onchange="App.importData(this)">
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="start" class="active">1 &middot; Start</button>
+  <button data-tab="titrate">2 &middot; Titrate</button>
+  <button data-tab="sidefx">3 &middot; Side Effects</button>
+  <button data-tab="coverage">4 &middot; Coverage</button>
+  <button data-tab="monitor">5 &middot; Monitor</button>
+  <button data-tab="protect">6 &middot; Protect</button>
+  <button data-tab="educate">7 &middot; Educate</button>
+  <button data-tab="document">8 &middot; Document</button>
+  <button data-tab="settings">Settings</button>
+  <button data-tab="guide">Start Here</button>
+</nav>
+
+<p id="accuracybar"><b>Content was drafted with AI assistance from FDA labeling and may contain errors.</b> Verify anything you act on against current prescribing information. Full disclaimer sits at the bottom of Settings.</p>
+
+<p id="doseguard"><b>GLP-1 Pad never recommends a dose for a patient.</b> Titration screens show the labeled schedule and calculate the next date. What to prescribe stays your decision.</p>
+
+<div id="favbar"><span class="favlabel">Pinned</span></div>
+<div id="backupbar">
+  <span>It has been over a week since your last backup. Your library lives only in this browser until you export a copy.</span>
+  <button class="btn small primary" onclick="App.exportData()">Export now</button>
+  <button class="btn small" onclick="App.snoozeBackup()">Remind me later</button>
+</div>
+
+<main>
+  <section class="tab active" id="tab-start">
+    <p class="tab-intro">Indication, BMI with comorbidities, contraindication screen, and a label-indication comparison across the drugs.</p>
+    <div id="start-body"></div>
+  </section>
+
+  <section class="tab" id="tab-titrate">
+    <p class="tab-intro">The labeled escalation schedule for the drug you pick, the next date from a start date, and the label's own missed dose, hold, and resume rules.</p>
+    <div id="titrate-body"></div>
+  </section>
+
+  <section class="tab" id="tab-sidefx">
+    <p class="tab-intro">Symptoms mapped to severity tiers with the action at each tier, plus the red flags that end the visit differently.</p>
+    <div id="sidefx-body"></div>
+  </section>
+
+  <section class="tab" id="tab-coverage">
+    <p class="tab-intro">Prior authorization letters, appeals, an ICD-10 picker, and manufacturer savings links. Payer criteria stay editable text, because plans differ and guessing them helps nobody.</p>
+    <div id="coverage-body"></div>
+  </section>
+
+  <section class="tab" id="tab-monitor">
+    <p class="tab-intro">Baseline panel, follow-up intervals by drug and indication, weight and A1c trends, renal flag, and DEXA trigger criteria.</p>
+    <div id="monitor-body"></div>
+  </section>
+
+  <section class="tab" id="tab-protect">
+    <p class="tab-intro">What weight loss costs if nobody protects against it: muscle, bone, and the plan for stopping. Protein target, resistance training prescription, fall risk, calcium and vitamin D.</p>
+    <div id="protect-body"></div>
+  </section>
+
+  <section class="tab" id="tab-educate">
+    <p class="tab-intro">Bilingual printable sheets. Tap to fill and copy, or build a packet and print the whole set as one job with your practice name on top.</p>
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      <button class="btn primary" onclick="Packet.open()">Build a handout packet</button>
+    </div>
+    <div class="cardgrid" id="instr-grid"></div>
+  </section>
+
+  <section class="tab" id="tab-document">
+    <p class="tab-intro">Dot phrases for initiation, titration, side effect, and maintenance visits. Tap a card, fill the blanks, copy, paste into your chart. Star one to pin it to the top bar.</p>
+    <div class="catrow" id="phrase-cats"></div>
+    <div class="cardgrid" id="phrase-grid"></div>
+    <div id="billing-body"></div>
+  </section>
+
+  <section class="tab" id="tab-settings">
+    <div class="set-block">
+      <h3>Your library <span id="storagebadge"></span></h3>
+      <p class="hint">Everything you edit here saves in this browser automatically. Use <b>Export</b> (top right) to back your library up to a file, and <b>Import</b> to load it on another computer. Do this whenever you make big edits: clinic workstations wipe browser data without warning.</p>
+      <p class="hint">Blank syntax for phrase and handout bodies: <code class="syn">{dose}</code> makes a fill-in box, <code class="syn">{severity:mild|moderate|severe}</code> makes a dropdown, <code class="syn">***</code> makes a generic blank, same as Epic. Put a <code class="syn">~</code> in front of the first option, as in <code class="syn">{dose:~0.25 mg|0.5 mg}</code>, and the list becomes a typable box that suggests those values and accepts anything else.</p>
+      <div class="ed-form" style="max-width:420px; margin-top:6px;">
+        <div><label>Practice name printed on patient handouts</label>
+        <input type="text" id="set-clinic" placeholder="e.g. Valley Metabolic Health"></div>
+      </div>
+    </div>
+    <div class="set-block">
+      <h3>Your signature</h3>
+      <p class="hint">Type your signature once. Every letter and attestation that ends in a signature uses it, including every prior authorization and appeal letter. Leave it blank and letters print <code class="syn">[your name and credentials]</code> instead.</p>
+      <div class="ed-form" style="max-width:420px; margin-top:6px;">
+        <div><label>Signature block (one line per line of the signature)</label>
+        <textarea id="set-sig" rows="3" placeholder="Jane Smith, MD&#10;Internal Medicine"></textarea></div>
+      </div>
+      <div class="ed-form" style="max-width:560px; margin-top:8px;">
+        <label style="font-weight:600">Preview</label>
+        <div id="sig-preview" class="filled" style="margin:4px 0 0; white-space:pre-wrap;"></div>
+      </div>
+      <p class="hint" style="margin-top:8px;">Put <code class="syn">[[ME]]</code> anywhere in your own phrases to drop the whole block in, or <code class="syn">[[MENAME]]</code> for the first line alone inside a sentence.</p>
+    </div>
+    <div class="set-block">
+      <h3>EMR mode</h3>
+      <p class="hint">Phrases carry portable markers like <code class="syn">[[NAME]]</code>, <code class="syn">[[MEDS]]</code>, and <code class="syn">[[LAB:A1C]]</code> for the parts your chart fills in by itself. This switch decides what those markers become when you copy. Flip it any time; the same phrase works in both.</p>
+      <div class="ed-form" style="max-width:560px; margin-top:6px;">
+        <div><label>Where are you charting today?</label>
+        <select id="set-emr">
+          <option value="generic">Any EMR (Meditech, Cerner, Athena, paper) - markers become bracketed cues</option>
+          <option value="epic">Epic - markers become SmartLinks like @NAME@ and @LABRSLTLINE(A1C)@</option>
+        </select></div>
+      </div>
+      <p class="hint" style="margin-top:8px;">Generic mode writes cues as plain text, never as boxes you type into. No name, date of birth, or MRN is ever entered into GLP-1 Pad in either mode.</p>
+      <div class="ed-form" style="max-width:560px; margin-top:8px;">
+        <label style="font-weight:600">Preview</label>
+        <div id="emr-preview" class="filled" style="margin:4px 0 0; white-space:pre-wrap;"></div>
+      </div>
+    </div>
+    <div class="set-block">
+      <h3>Phrases</h3>
+      <div id="ed-phrases"></div>
+      <button class="btn small" style="margin-top:8px" onclick="ED.newItem('phrases')">+ Add phrase</button>
+    </div>
+    <div class="set-block">
+      <h3>Patient handouts</h3>
+      <div id="ed-instructions"></div>
+      <button class="btn small" style="margin-top:8px" onclick="ED.newItem('instructions')">+ Add handout</button>
+    </div>
+    <div class="set-block">
+      <h3>About &amp; license</h3>
+      <p class="hint" style="margin-bottom:6px;"><b>GLP-1 Pad</b> &middot; a prescriber companion for GLP-1 receptor agonist therapy.<br>
+      &copy; 2026 Dominique Feterman, MD. Forked from RheumPad by the same author.</p>
+      <p class="hint"><b>License:</b> Commercial license pending. Do not redistribute.</p>
+      <p class="hint"><b>Medical disclaimer:</b> GLP-1 Pad is a documentation aid for licensed clinicians. Not medical advice, not a diagnostic device, and not a substitute for clinical judgment or current prescribing information. <b>GLP-1 Pad does not recommend doses.</b> Titration screens reproduce the labeled schedule and calculate calendar dates. Every prescribing decision, including whether the labeled schedule fits a given patient, stays with you. Verify against current prescribing information before prescribing. Provided as is, without warranty of any kind. The author accepts no liability for clinical decisions made using this tool.</p>
+      <p class="hint"><b>Privacy:</b> GLP-1 Pad stores no patient data. Nothing you type leaves your browser, no account exists, and no analytics or network calls run. Keep protected health information out of every field, including your own custom phrases.</p>
+      <p class="hint"><b>Sources:</b> Clinical content is drawn from current FDA prescribing information for semaglutide, tirzepatide, and liraglutide. Values the author has not yet verified against the label are marked in the source with a TODO comment and should be confirmed before release.</p>
+    </div>
+    <div class="set-block">
+      <h3>Reset</h3>
+      <p class="hint">Restore the built-in starter library. Your own added items are removed. Export first if unsure.</p>
+      <button class="btn danger" onclick="ED.resetAll()">Reset to starter library</button>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-guide">
+    <div class="set-block">
+      <h3>What GLP-1 Pad is</h3>
+      <p class="hint">A charting companion for prescribers of GLP-1 receptor agonists. It holds dot phrases, prior authorization and appeal letters, bilingual patient handouts, the labeled titration schedules, a monitoring plan, and the muscle and bone protection work that gets skipped. You fill in blanks here, copy, and paste into whatever chart you use.</p>
+      <p class="hint">It runs entirely inside your browser. No login, no server, no internet connection needed after the file loads. Nothing you type leaves your computer.</p>
+      <p class="hint"><b>Never type patient identifiers into GLP-1 Pad.</b> No names, no dates of birth, no MRNs, not in phrases you write yourself. Chart-specific details show as bracketed cues your EMR fills in after you paste.</p>
+    </div>
+    <div class="set-block">
+      <h3>What it will not do</h3>
+      <p class="hint">It will not tell you what to prescribe for a patient. There is no logic anywhere in this file that reads patient characteristics and returns a dose. The Titrate tab shows the escalation schedule printed in the label and works out the next calendar date from a start date you enter. Reading that schedule against the patient in front of you is the part only you can do.</p>
+    </div>
+    <div class="set-block">
+      <h3>Set it up in two minutes</h3>
+      <ol class="hint" style="padding-left:20px; line-height:1.9;">
+        <li><b>Type your signature.</b> Settings, Your signature. Every letter picks it up.</li>
+        <li><b>Type your practice name.</b> Settings, Your library. It prints on patient handouts.</li>
+        <li><b>Pick your EMR.</b> Settings, EMR mode.</li>
+        <li><b>Export a backup.</b> Top right, after any big editing session.</li>
+      </ol>
+      <button class="btn primary" onclick="App.showTab('settings')">Open Settings</button>
+    </div>
+    <div class="set-block">
+      <h3>The quick launcher</h3>
+      <p class="hint">Press the period key or Ctrl+K from anywhere. Type a dot phrase like .glpstart, or any name. Arrow keys move, Enter copies or opens it. Phrases with no blanks copy straight to your clipboard.</p>
+    </div>
+  </section>
+</main>
+
+<div id="overlay" onclick="if(event.target===this)App.closeModal()"><div id="modal"></div></div>
+<div id="qwrap" onclick="if(event.target===this)Launcher.close()">
+  <div id="qbox">
+    <input id="qinput" placeholder="Type a dot phrase or name&hellip;" autocomplete="off">
+    <div id="qlist"></div>
+    <div id="qhint">&uarr;&darr; to choose &middot; Enter to copy or fill &middot; Esc to close &middot; open anytime with . or Ctrl+K</div>
+  </div>
+</div>
+<div id="toast">Copied</div>
+<div id="printsheet"><h1 id="pr-title"></h1><div class="clin" id="pr-clinic"></div><pre id="pr-body"></pre><div class="foot" id="pr-foot"></div>
+<div id="pr-cut"><span>cut here</span></div>
+<div id="pr-copy2"><h1 id="pr2-title"></h1><div class="clin" id="pr2-clinic"></div><pre id="pr2-body"></pre><div class="foot" id="pr2-foot"></div></div>
+</div>
+<div id="printpacket"></div>
+
+<script>
+// ====================== STARTER LIBRARY ======================
+// Blank syntax: {label} = fill-in box · {label:opt1|opt2} = dropdown · *** = generic blank
+// The shell ships the collections empty. Each tab commit fills its own.
+const DEFAULT_DATA = {
+  version: 1,
+  clinic: "",
+  sig: "",
+  emr: "generic",
+  phrases: [],
+  instructions: [],
+  codes: []
+};
+
+// ====================== CORE ======================
+const KEY = "glp1pad_v1";
+let DATA, FAVS, META = {};
+let storageOK = true;
+let FIRST_RUN = false;
+
+// Search ignores accents both ways, so nausea finds náusea and vomito finds vómito.
+const NOACC = t => (t || "").toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+function loadState(){
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(KEY)); } catch(e){ storageOK = false; }
+  if (stored && stored.data && stored.data.phrases) {
+    DATA = stored.data; FAVS = stored.favs || []; META = stored.meta || {};
+    // Seed built-in content added in later versions without touching user edits.
+    // A stored id is the user's copy and is never overwritten; a missing id is new
+    // content they have not seen yet, so it gets appended.
+    if ((stored.seededVersion || 0) < DEFAULT_DATA.version) {
+      ["phrases","instructions","codes"].forEach(coll=>{
+        if (!DATA[coll]) DATA[coll] = [];
+        const have = new Set(DATA[coll].map(x=>x.id));
+        DEFAULT_DATA[coll].forEach(item=>{ if (!have.has(item.id)) DATA[coll].push(JSON.parse(JSON.stringify(item))); });
+      });
+      // A handout that gained a Spanish body after the user already had the English
+      // one takes the translation, since an absent bodyEs was never an edit.
+      DEFAULT_DATA.instructions.forEach(d=>{
+        const s = DATA.instructions.find(x=>x.id === d.id);
+        if (s && d.bodyEs && !s.bodyEs) s.bodyEs = d.bodyEs;
+      });
+    }
+    if (DATA.clinic === undefined) DATA.clinic = "";
+    if (DATA.sig === undefined) DATA.sig = "";
+    if (DATA.emr === undefined) DATA.emr = "generic";
+  } else {
+    DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); FAVS = []; META = {};
+    FIRST_RUN = true;
+  }
+  if (!META.firstRun) META.firstRun = Date.now();
+}
+function saveState(){
+  try { localStorage.setItem(KEY, JSON.stringify({data:DATA, favs:FAVS, meta:META, seededVersion:DEFAULT_DATA.version})); storageOK = true; }
+  catch(e){ storageOK = false; }
+  const b = document.getElementById("storagebadge");
+  if (b) b.innerHTML = storageOK ? '<span class="savebadge">saving in this browser</span>'
+    : '<span class="warnbadge">this browser blocks saving - use Export to keep changes</span>';
+}
+function uid(p){ return p + "-" + Math.random().toString(36).slice(2,9); }
+function toast(msg){
+  const t = document.getElementById("toast"); t.textContent = msg || "Copied";
+  t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1400);
+}
+function copyText(text){
+  const done = ()=>toast("Copied to clipboard");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch(e){ toast("Copy failed - select and copy manually"); }
+  document.body.removeChild(ta);
+}
+// ---------- EMR tokens ----------
+// One phrase body carries [[TOKEN]] markers. They become Epic SmartLinks in Epic mode
+// and plain bracketed cues in generic mode. Generic cues render as TEXT, never as input
+// fields, so no identifier can be typed into this app in either mode.
+const TOKENS = {
+  NAME:      ["@NAME@",                    "[patient name]"],
+  AGE:       ["@AGEDETAILEDREFRESH@",      "[age]"],
+  SEX:       ["@SEX@",                     "[sex]"],
+  TODAY:     ["@TODAYDATE@",               "[date of service]"],
+  MRN:       ["@MRN@",                     "[MRN]"],
+  DOB:       ["@DOB@",                     "[DOB]"],
+  REFPROV:   ["@REFPROVFLNAME@",           "[referring provider]"],
+  PCP:       ["@PCPADD@",                  "[primary care provider]"],
+  DXLIST:    ["@DIAGMEDREFRESH@",          "[encounter diagnoses]"],
+  PROBLIST:  ["@PROBPLAIN@",               "[problem list]"],
+  MEDS:      ["@MEDSCONDENSEDREFRESH@",    "[current medication list]"],
+  ALLERGIES: ["@ALGSINGLE@",               "[allergies]"],
+  LASTVISIT: ["@LASTENCTHISDEPT365@",      "[date of last visit]"],
+  SUBJ:      ["@SUBJECTIVE@",              "SUBJECTIVE"],
+  OBJ:       ["@OBJECTIVE@",               "OBJECTIVE"],
+  APEND:     ["@ASSESSMENTPLANEND@",       ""],
+  VITALS:    ["@VS@",                      "[vital signs]"],
+  WT:        ["@LASTWT(10)@",              "[weight, last 10]"],
+  BP:        ["@LASTBP(10)@",              "[blood pressure, last 10]"],
+  EXAM:      ["@PHYSEXAM@",                "[physical exam]"],
+  IMAGING:   ["@LASTIMGRESULTS@",          "[imaging results]"],
+  BMI:       ["@BMI@",                     "[BMI]"],
+  A1C:       ["@LABRSLTLINE(A1C)@",        "A1c: [        ]"]
+};
+const TOK_RE = /\[\[([A-Z]+)(?::([^\]]*))?\]\]/g;
+// The signature is the clinician's own, typed once in Settings and reused everywhere.
+// It is not patient data, so it saves and exports with the library.
+function sigBlock(){
+  const s = (typeof DATA !== "undefined" && DATA && DATA.sig) ? String(DATA.sig).trim() : "";
+  return s || "[your name and credentials]";
+}
+const Tok = {
+  mode(){ return (typeof DATA !== "undefined" && DATA && DATA.emr === "epic") ? "epic" : "generic"; },
+  apply(body){
+    if (!body || body.indexOf("[[") < 0) return body;
+    const epic = this.mode() === "epic";
+    return body.replace(TOK_RE, (m, key, arg)=>{
+      if (key === "ME") return sigBlock();
+      if (key === "MENAME") return sigBlock().split("\n")[0];
+      if (key === "LAB") return epic ? "@LABRSLTLINE(" + (arg||"") + ")@" : (arg||"") + ": [        ]";
+      const t = TOKENS[key];
+      if (!t) return m;
+      return epic ? t[0] : t[1];
+    });
+  }
+};
+// ---------- Fill-in rendering ----------
+const PH_RE = /\{([^{}|:]+):([^{}]*)\}|\{([^{}|:]+)\}|\*\*\*/g;
+let DL_N = 0;
+function renderFillable(body, container){
+  body = Tok.apply(body);
+  container.textContent = "";
+  let last = 0, m;
+  PH_RE.lastIndex = 0;
+  while ((m = PH_RE.exec(body)) !== null) {
+    if (m.index > last) container.appendChild(document.createTextNode(body.slice(last, m.index)));
+    if (m[1] !== undefined) {           // {label:opt|opt}, or {label:~opt|opt} for a typable list
+      const label = m[1].trim();
+      if (m[2].charAt(0) === "~") {     // editable: suggestions offered, any value accepted
+        const opts = m[2].slice(1).split("|");
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.value = opts[0]; inp.title = label; inp.placeholder = label;
+        const dl = document.createElement("datalist");
+        dl.id = "dl" + (++DL_N);
+        opts.forEach(opt=>{ const o = document.createElement("option"); o.value = opt; dl.appendChild(o); });
+        inp.setAttribute("list", dl.id);
+        const fit = ()=>{ inp.size = Math.max(inp.value.length, label.length, 8); };
+        fit(); inp.addEventListener("input", fit);
+        container.appendChild(inp); container.appendChild(dl);
+      } else {
+        const sel = document.createElement("select");
+        sel.title = label;
+        m[2].split("|").forEach(opt=>{
+          const o = document.createElement("option");
+          o.value = opt; o.textContent = opt === "" ? "(blank)" : opt;
+          sel.appendChild(o);
+        });
+        container.appendChild(sel);
+      }
+    } else {                            // {label} or ***
+      const label = m[3] !== undefined ? m[3].trim() : "fill in";
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.placeholder = label; inp.title = label;
+      inp.size = Math.max(label.length, 6);
+      inp.addEventListener("input", ()=>{ inp.size = Math.max(inp.value.length, label.length, 6); });
+      container.appendChild(inp);
+    }
+    last = PH_RE.lastIndex;
+  }
+  if (last < body.length) container.appendChild(document.createTextNode(body.slice(last)));
+}
+function collectText(node){
+  let out = "";
+  node.childNodes.forEach(ch=>{
+    if (ch.nodeType === 3) out += ch.data;
+    else if (ch.tagName === "INPUT") out += (ch.value.trim() || "***");
+    else if (ch.tagName === "SELECT") out += ch.value;
+    else if (ch.tagName === "BR") out += "\n";
+    else if (ch.tagName === "DATALIST") { /* suggestions only, never part of the text */ }
+    else out += collectText(ch);
+  });
+  return out;
+}
+function preview(body){
+  return Tok.apply(body).replace(PH_RE, (mm,a,b,c)=> a ? "["+a.trim()+"]" : (c ? "["+c.trim()+"]" : "[___]"));
+}
+
+// ====================== APP (tabs, modal, search, favorites) ======================
+const App = {
+  currentTab: "phrases",
+  showTab(name){
+    document.querySelectorAll("section.tab").forEach(s=>s.classList.remove("active"));
+    document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab === name));
+    const sec = document.getElementById("tab-" + name);
+    if (sec) sec.classList.add("active");
+    this.currentTab = name;
+    const sr = document.getElementById("tab-search"); if (sr) sr.classList.remove("active");
+  },
+  openModal(html){ document.getElementById("modal").innerHTML = ""; document.getElementById("overlay").classList.add("open"); },
+  closeModal(){ document.getElementById("overlay").classList.remove("open"); },
+
+  openFill(kind, id){
+    const coll = kind === "phrase" ? DATA.phrases : DATA.instructions;
+    const item = coll.find(x=>x.id === id); if (!item) return;
+    const modal = document.getElementById("modal"); modal.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = item.name; modal.appendChild(h);
+    const c = document.createElement("div"); c.className = "cat";
+    c.textContent = (item.dot ? item.dot + "  ·  " : "") + (item.cat || "Patient instructions"); modal.appendChild(c);
+    let lang = "en";
+    const curBody = ()=> lang === "es" && item.bodyEs ? item.bodyEs : item.body;
+    if (kind !== "phrase" && item.bodyEs) {
+      const tg = document.createElement("div"); tg.className = "langtoggle";
+      const be = document.createElement("button"); be.textContent = "English"; be.className = "on";
+      const bs = document.createElement("button"); bs.textContent = "Español";
+      be.onclick = ()=>{ lang = "en"; be.classList.add("on"); bs.classList.remove("on"); renderFillable(curBody(), fill); };
+      bs.onclick = ()=>{ lang = "es"; bs.classList.add("on"); be.classList.remove("on"); renderFillable(curBody(), fill); };
+      tg.appendChild(be); tg.appendChild(bs);
+      const wrap = document.createElement("div"); wrap.appendChild(tg);
+      const hint = document.createElement("span"); hint.className = "langhint"; hint.textContent = "This handout is also available in Spanish. Tap Español.";
+      wrap.appendChild(hint); modal.appendChild(wrap);
+    }
+    const fill = document.createElement("div"); fill.className = "filled";
+    renderFillable(item.body, fill); modal.appendChild(fill);
+    const acts = document.createElement("div"); acts.className = "modal-actions";
+    const mk = (label, cls, fn)=>{ const b=document.createElement("button"); b.className="btn "+cls; b.textContent=label; b.onclick=fn; acts.appendChild(b); };
+    if (kind !== "phrase") mk("Print", "", ()=>App.printSheet(item.name, collectText(fill), lang));
+    mk("Copy with blanks (***)", "", ()=>{ copyText(Tok.apply(curBody()).replace(PH_RE, "***")); });
+    mk("Copy", "primary", ()=>{ copyText(collectText(fill)); App.closeModal(); });
+    mk("Close", "", ()=>App.closeModal());
+    modal.appendChild(acts);
+    document.getElementById("overlay").classList.add("open");
+    const f = fill.querySelector("input,select"); if (f) f.focus();
+  },
+  printSheet(title, text, lang){
+    const body = text.replace(/\*\*\*/g, "________");
+    document.getElementById("pr-title").textContent = title;
+    document.getElementById("pr-clinic").textContent = DATA.clinic || " ";
+    const pre = document.getElementById("pr-body");
+    pre.textContent = body;
+    const fit = App.fitPrint(body);
+    pre.style.fontSize = fit.size + "pt";
+    pre.style.lineHeight = String(fit.lh);
+    document.getElementById("pr-foot").textContent =
+      (lang === "es" ? "Entregado el " : "Provided ") + new Date().toLocaleDateString() +
+      (lang === "es" ? ". Si tiene preguntas, llame al consultorio." : ". Questions? Call the office.");
+    window.print();
+  },
+
+  // Half page. The same plan prints twice on one sheet with a cut line between,
+  // so one copy goes to the patient and one goes in the folder, or two patients
+  // leave with the same plan off a single sheet.
+  printHalf(title, text, lang){
+    const body = text.replace(/\*\*\*/g, "________");
+    const foot = (lang === "es" ? "Entregado el " : "Provided ") + new Date().toLocaleDateString() +
+      (lang === "es" ? ". Si tiene preguntas, llame al consultorio." : ". Questions? Call the office.");
+    const fit = App.fitPrint(body, 4.05);
+    [["pr-title","pr-clinic","pr-body","pr-foot"], ["pr2-title","pr2-clinic","pr2-body","pr2-foot"]].forEach(ids=>{
+      document.getElementById(ids[0]).textContent = title;
+      document.getElementById(ids[1]).textContent = DATA.clinic || " ";
+      const pre = document.getElementById(ids[2]);
+      pre.textContent = body;
+      pre.style.fontSize = fit.size + "pt";
+      pre.style.lineHeight = String(fit.lh);
+      document.getElementById(ids[3]).textContent = foot;
+    });
+    const sheet = document.getElementById("printsheet");
+    sheet.classList.add("half");
+    window.print();
+    setTimeout(()=>sheet.classList.remove("half"), 500);
+  },
+
+  // One handout, one sheet. Longer text prints smaller instead of spilling onto a
+  // second page. The size is measured against a hidden block the width of the
+  // printable area, so wrapping matches what the printer does.
+  fitPrint(text, budgetIn){
+    const BUDGET_IN = budgetIn || 8.9;               // letter height less margins, title block, footer
+    const steps = [
+      {size:12,   lh:1.6},  {size:11.5, lh:1.55}, {size:11, lh:1.5},
+      {size:10.5, lh:1.45}, {size:10,   lh:1.4},  {size:9.5, lh:1.35},
+      {size:9,    lh:1.3},  {size:8.5,  lh:1.25}, {size:8,  lh:1.2}
+    ];
+    let m = document.getElementById("pr-measure");
+    if (!m){
+      m = document.createElement("pre");
+      m.id = "pr-measure";
+      m.style.cssText = "position:absolute;left:-9999px;top:0;width:7.5in;white-space:pre-wrap;visibility:hidden;margin:0;";
+      document.body.appendChild(m);
+    }
+    m.style.fontFamily = getComputedStyle(document.body).fontFamily;
+    m.textContent = text;
+    for (const st of steps){
+      m.style.fontSize = st.size + "pt";
+      m.style.lineHeight = String(st.lh);
+      if (m.getBoundingClientRect().height / 96 <= BUDGET_IN) return st;
+    }
+    return steps[steps.length - 1];
+  },
+
+  toggleFav(kind, id, ev){
+    if (ev) ev.stopPropagation();
+    const key = kind + ":" + id;
+    const i = FAVS.indexOf(key);
+    if (i >= 0) FAVS.splice(i,1); else FAVS.push(key);
+    saveState(); renderAll();
+  },
+  isFav(kind, id){ return FAVS.includes(kind + ":" + id); },
+
+  exportData(){
+    const blob = new Blob([JSON.stringify({data:DATA, favs:FAVS}, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "glp1pad-library.json";
+    a.click(); URL.revokeObjectURL(a.href);
+    META.lastExport = Date.now(); saveState(); App.checkBackup();
+    toast("Library exported");
+  },
+  checkBackup(){
+    const bar = document.getElementById("backupbar");
+    if (!bar) return;
+    const WEEK = 7 * 864e5, now = Date.now();
+    const anchor = META.lastExport || META.firstRun || now;
+    const due = storageOK && now - anchor > WEEK && now > (META.snoozeUntil || 0);
+    bar.classList.toggle("show", due);
+  },
+  snoozeBackup(){
+    META.snoozeUntil = Date.now() + 3 * 864e5; saveState(); App.checkBackup();
+  },
+  help(){
+    const modal = document.getElementById("modal"); modal.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = "How GLP-1 Pad works"; modal.appendChild(h);
+    const blocks = [
+      ["Quick launcher", "Press . (period) or Ctrl+K anywhere. Type a shortcut like .glpstart or any name, hit Enter. Phrases without blanks copy instantly; everything else opens ready to fill."],
+      ["Blanks", "In any phrase or handout body: {dose} makes a fill-in box, {severity:mild|moderate|severe} makes a dropdown, *** makes a generic blank. Empty boxes copy as *** so you catch them in the note."],
+      ["No dose recommendations", "GLP-1 Pad shows the escalation schedule printed in the label and works out the next calendar date. It never reads a patient and suggests a dose. That decision stays yours."],
+      ["Where your work saves", "Everything you edit saves in this browser only, on this computer. Export (top right) writes your whole library to a file; Import loads it anywhere."],
+      ["Handouts", "Patient sheets fill like phrases, toggle to Spanish, and Print gives a clean one-page sheet with your practice name (set it in Settings)."],
+      ["No patient information", "The app stores no names, dates of birth, or identifiers by design. Keep it that way, including in phrases you write yourself."],
+      ["Your signature", "Settings, Your signature. Type it once and every letter and attestation uses it."],
+      ["Longer guide", "The Start Here tab, last on the tab bar, covers setup and the dose-recommendation boundary."]
+    ];
+    blocks.forEach(([t, txt])=>{
+      const b = document.createElement("div"); b.className = "helpblock";
+      const bt = document.createElement("b"); bt.textContent = t;
+      const p = document.createElement("p"); p.textContent = txt;
+      b.appendChild(bt); b.appendChild(p); modal.appendChild(b);
+    });
+    const acts = document.createElement("div"); acts.className = "modal-actions";
+    const cl = document.createElement("button"); cl.className = "btn primary"; cl.textContent = "Close";
+    cl.onclick = ()=>App.closeModal(); acts.appendChild(cl); modal.appendChild(acts);
+    document.getElementById("overlay").classList.add("open");
+  },
+  importData(inp){
+    const f = inp.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try {
+        const obj = JSON.parse(r.result);
+        if (!obj.data || !obj.data.phrases) throw new Error("bad file");
+        DATA = obj.data; FAVS = obj.favs || [];
+        saveState(); renderAll(); toast("Library imported");
+      } catch(e){ toast("Not a valid GLP-1 Pad file"); }
+    };
+    r.readAsText(f); inp.value = "";
+  },
+
+  search(q){
+    q = NOACC(q.trim());
+    let sec = document.getElementById("tab-search");
+    if (!sec) {
+      sec = document.createElement("section"); sec.className = "tab"; sec.id = "tab-search";
+      sec.innerHTML = '<p class="tab-intro">Search results</p><div class="cardgrid" id="search-grid"></div>';
+      document.querySelector("main").appendChild(sec);
+    }
+    if (!q) { sec.classList.remove("active"); this.showTab(this.currentTab); return; }
+    document.querySelectorAll("section.tab").forEach(s=>s.classList.remove("active"));
+    sec.classList.add("active");
+    const grid = document.getElementById("search-grid"); grid.innerHTML = "";
+    const hits = [];
+    DATA.phrases.forEach(p=>{ if (NOACC(p.name+" "+(p.dot||"")+" "+p.cat+" "+p.body).includes(q)) hits.push({kind:"phrase", item:p, tag:p.dot || "phrase"}); });
+    DATA.instructions.forEach(i2=>{ if (NOACC(i2.name+" "+i2.body+" "+(i2.bodyEs||"")).includes(q)) hits.push({kind:"instruction", item:i2, tag:"instructions"}); });
+    (DATA.codes || []).forEach(g=>g.items.forEach(it=>{ if (NOACC(it.code+" "+it.desc).includes(q)) hits.push({kind:"code", item:{...it, name:it.code + ", " + it.desc, body:it.desc}, tag:"code"}); }));
+    if (!hits.length) { grid.innerHTML = '<div class="empty">No matches. Add your own phrases in Settings.</div>'; return; }
+    hits.forEach(h=>{
+      const card = document.createElement("div"); card.className = "card";
+      card.innerHTML = '<h3></h3><div class="cat"></div><p class="preview"></p>';
+      card.querySelector("h3").textContent = h.item.name;
+      card.querySelector(".cat").textContent = h.tag;
+      card.querySelector(".preview").textContent = preview(h.item.body || "");
+      card.onclick = ()=>{
+        document.getElementById("globalsearch").value = "";
+        if (h.kind === "phrase") { App.showTab("document"); App.openFill("phrase", h.item.id); }
+        else if (h.kind === "code") { copyText(h.item.code); }
+        else if (h.kind === "instruction") { App.showTab("educate"); App.openFill("instruction", h.item.id); }
+        else { App.showTab("educate"); App.openFill("instruction", h.item.id); }
+      };
+      grid.appendChild(card);
+    });
+  }
+};
+
+// ====================== RENDER: phrases / instructions / favorites ======================
+let phraseCatFilter = "All";
+function renderPhrases(){
+  const cats = ["All", ...new Set(DATA.phrases.map(p=>p.cat))];
+  const catrow = document.getElementById("phrase-cats"); catrow.innerHTML = "";
+  cats.forEach(c=>{
+    const b = document.createElement("button");
+    b.className = "chip cat" + (phraseCatFilter === c ? " on" : "");
+    b.textContent = c;
+    b.onclick = ()=>{ phraseCatFilter = c; renderPhrases(); };
+    catrow.appendChild(b);
+  });
+  const grid = document.getElementById("phrase-grid"); grid.innerHTML = "";
+  const list = DATA.phrases.filter(p=>phraseCatFilter === "All" || p.cat === phraseCatFilter);
+  if (!list.length) { grid.innerHTML = '<div class="empty">No phrases yet. Add yours in Settings.</div>'; return; }
+  list.forEach(p=>{
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = '<h3></h3><div><span class="dot"></span> <span class="cat"></span></div><p class="preview"></p>' +
+      '<button class="star" title="Pin to top bar">&#9733;</button>';
+    card.querySelector("h3").textContent = p.name;
+    card.querySelector(".dot").textContent = p.dot || "";
+    card.querySelector(".cat").textContent = p.cat;
+    card.querySelector(".preview").textContent = preview(p.body);
+    const star = card.querySelector(".star");
+    if (App.isFav("phrase", p.id)) star.classList.add("faved");
+    star.onclick = (e)=>App.toggleFav("phrase", p.id, e);
+    card.onclick = ()=>App.openFill("phrase", p.id);
+    grid.appendChild(card);
+  });
+}
+function renderInstructions(){
+  const grid = document.getElementById("instr-grid"); grid.innerHTML = "";
+  if (!DATA.instructions.length) { grid.innerHTML = '<div class="empty">No instruction sheets yet. Add yours in Settings.</div>'; return; }
+  DATA.instructions.forEach(p=>{
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = '<h3></h3><p class="preview"></p><button class="star" title="Pin to top bar">&#9733;</button>';
+    card.querySelector("h3").textContent = p.name;
+    if (p.bodyEs) { const b = document.createElement("span"); b.className = "esbadge"; b.textContent = "EN · ES"; b.title = "Available in Spanish"; card.querySelector("h3").appendChild(b); }
+    card.querySelector(".preview").textContent = preview(p.body);
+    const star = card.querySelector(".star");
+    if (App.isFav("instruction", p.id)) star.classList.add("faved");
+    star.onclick = (e)=>App.toggleFav("instruction", p.id, e);
+    card.onclick = ()=>App.openFill("instruction", p.id);
+    grid.appendChild(card);
+  });
+}
+function renderFavbar(){
+  const bar = document.getElementById("favbar");
+  bar.querySelectorAll(".chip").forEach(c=>c.remove());
+  FAVS.forEach(key=>{
+    const [kind, id] = key.split(":");
+    let item, fn;
+    if (kind === "phrase") { item = DATA.phrases.find(x=>x.id===id); fn = ()=>{ App.showTab("document"); App.openFill("phrase", id); }; }
+    else if (kind === "instruction") { item = DATA.instructions.find(x=>x.id===id); fn = ()=>{ App.showTab("educate"); App.openFill("instruction", id); }; }
+    if (!item) return;
+    const b = document.createElement("button"); b.className = "chip";
+    b.innerHTML = "&#9733; "; b.appendChild(document.createTextNode(item.name));
+    b.onclick = fn;
+    bar.appendChild(b);
+  });
+}
+
+// ====================== CODES ======================
+const Codes = {
+  render(){
+    const wrap = document.getElementById("code-groups"); if (!wrap) return; wrap.innerHTML = "";
+    (DATA.codes || []).forEach(g=>{
+      const block = document.createElement("div"); block.className = "comp-section";
+      const h4 = document.createElement("h4");
+      const sp = document.createElement("span"); sp.textContent = g.name; h4.appendChild(sp); block.appendChild(h4);
+      const chips = document.createElement("div"); chips.className = "pc-chips";
+      g.items.forEach(it=>{
+        const c = document.createElement("button"); c.className = "chip";
+        c.innerHTML = "<b></b>&nbsp;"; c.querySelector("b").textContent = it.code;
+        c.appendChild(document.createTextNode(it.desc));
+        c.title = "Copy " + it.code;
+        c.onclick = ()=>copyText(it.code);
+        chips.appendChild(c);
+      });
+      block.appendChild(chips); wrap.appendChild(block);
+    });
+  }
+};
+
+// ====================== QUICK LAUNCHER ======================
+const Launcher = {
+  items: [], sel: 0,
+  open(prefill){
+    document.getElementById("qwrap").classList.add("open");
+    const inp = document.getElementById("qinput");
+    inp.value = prefill || ""; inp.focus();
+    this.filter(inp.value);
+  },
+  close(){ document.getElementById("qwrap").classList.remove("open"); },
+  isOpen(){ return document.getElementById("qwrap").classList.contains("open"); },
+  filter(q){
+    q = NOACC(q.trim()).replace(/^\./, "");
+    const pool = [];
+    DATA.phrases.forEach(p=>pool.push({kind:"phrase", tag:p.dot || "", name:p.name, item:p}));
+    DATA.instructions.forEach(i2=>pool.push({kind:"instruction", tag:"handout", name:i2.name, item:i2}));
+    (DATA.codes || []).forEach(g=>g.items.forEach(it=>pool.push({kind:"code", tag:it.code, name:it.desc, item:it})));
+    let hits;
+    if (!q) hits = pool.slice(0, 8);
+    else {
+      const scored = pool.map(x=>{
+        const dot = NOACC(x.tag).replace(/^\./, ""), nm = NOACC(x.name);
+        let s = -1;
+        if (dot && dot.startsWith(q)) s = 0;
+        else if (nm.startsWith(q)) s = 1;
+        else if (dot.includes(q) || nm.includes(q)) s = 2;
+        return {x, s};
+      }).filter(r=>r.s >= 0);
+      scored.sort((a,b)=>a.s - b.s);
+      hits = scored.slice(0, 8).map(r=>r.x);
+    }
+    this.items = hits; this.sel = 0; this.renderList();
+  },
+  renderList(){
+    const list = document.getElementById("qlist"); list.innerHTML = "";
+    if (!this.items.length) { list.innerHTML = '<div class="qrow" style="cursor:default;color:var(--muted)">No matches</div>'; return; }
+    this.items.forEach((x, i)=>{
+      const row = document.createElement("div"); row.className = "qrow" + (i === this.sel ? " sel" : "");
+      const dot = document.createElement("span"); dot.className = "qdot"; dot.textContent = x.tag || "·";
+      const nm = document.createElement("span"); nm.textContent = x.name;
+      const kd = document.createElement("span"); kd.className = "qkind";
+      kd.textContent = x.kind === "code" ? "copies code"
+        : x.kind === "phrase" ? (PH_RE.test(x.item.body) ? "fill + copy" : "copies instantly")
+        : "fill + copy";
+      PH_RE.lastIndex = 0;
+      row.appendChild(dot); row.appendChild(nm); row.appendChild(kd);
+      row.onclick = ()=>{ this.sel = i; this.activate(); };
+      list.appendChild(row);
+    });
+  },
+  activate(){
+    const x = this.items[this.sel]; if (!x) return;
+    this.close();
+    if (x.kind === "code") { copyText(x.item.code); return; }
+    PH_RE.lastIndex = 0;
+    if (PH_RE.test(x.item.body)) { PH_RE.lastIndex = 0; App.openFill(x.kind, x.item.id); }
+    else copyText(Tok.apply(x.item.body));
+  },
+  key(e){
+    if (e.key === "Escape") { this.close(); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); this.sel = Math.min(this.sel + 1, this.items.length - 1); this.renderList(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); this.sel = Math.max(this.sel - 1, 0); this.renderList(); }
+    else if (e.key === "Enter") { e.preventDefault(); this.activate(); }
+  }
+};
+
+// ====================== SETTINGS EDITOR ======================
+const ED = {
+  labels: {phrases:"phrase", instructions:"handout"},
+  renderLists(){
+    ["phrases","instructions"].forEach(coll=>{
+      if (!DATA[coll]) DATA[coll] = [];
+      const host = document.getElementById("ed-" + coll); host.innerHTML = "";
+      DATA[coll].forEach(item=>{
+        const row = document.createElement("div"); row.className = "ed-row";
+        const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = item.name;
+        const ct = document.createElement("span"); ct.className = "ct";
+        ct.textContent = item.dot || item.cat || "";
+        const eb = document.createElement("button"); eb.className = "btn small"; eb.textContent = "Edit";
+        eb.onclick = ()=>ED.editItem(coll, item.id);
+        const db = document.createElement("button"); db.className = "btn small danger"; db.textContent = "Delete";
+        db.onclick = ()=>{
+          if (confirm("Delete \"" + item.name + "\"?")) {
+            DATA[coll] = DATA[coll].filter(x=>x.id!==item.id);
+            FAVS = FAVS.filter(k=>!k.endsWith(":"+item.id));
+            saveState(); renderAll();
+          }
+        };
+        row.appendChild(nm); row.appendChild(ct); row.appendChild(eb); row.appendChild(db);
+        host.appendChild(row);
+      });
+    });
+  },
+  newItem(coll){ this.editItem(coll, null); },
+  editItem(coll, id){
+    const item = id ? DATA[coll].find(x=>x.id===id) : null;
+    const modal = document.getElementById("modal"); modal.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = (item ? "Edit " : "New ") + this.labels[coll]; modal.appendChild(h);
+    const form = document.createElement("div"); form.className = "ed-form";
+    const field = (label, el)=>{ const d=document.createElement("div"); const l=document.createElement("label"); l.textContent=label; d.appendChild(l); d.appendChild(el); form.appendChild(d); return el; };
+    const txt = (v)=>{ const i=document.createElement("input"); i.type="text"; i.value=v||""; return i; };
+    const area = (v)=>{ const t=document.createElement("textarea"); t.value=v||""; return t; };
+    let els = {};
+    els.name = field("Name", txt(item && item.name));
+    if (coll === "phrases") {
+      els.dot = field("Shortcut (like .mtxstart) - optional", txt(item && item.dot));
+      els.cat = field("Category", txt(item ? item.cat : "General"));
+      els.body = field("Body  ·  {blank}  {pick:a|b|c}  ***", area(item && item.body));
+    } else if (coll === "instructions") {
+      els.body = field("Body (English)  ·  {blank}  {pick:a|b|c}  ***", area(item && item.body));
+      els.bodyEs = field("Body (Spanish) - optional, same {blanks}", area(item && item.bodyEs));
+    }
+    modal.appendChild(form);
+    const acts = document.createElement("div"); acts.className = "modal-actions";
+    const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel"; cancel.onclick = ()=>App.closeModal();
+    const save = document.createElement("button"); save.className = "btn primary"; save.textContent = "Save";
+    save.onclick = ()=>{
+      const name = els.name.value.trim();
+      if (!name) { toast("Name is required"); return; }
+      let obj = item || {id: uid(coll.slice(0,2))};
+      obj.name = name;
+      if (coll === "phrases") { obj.dot = els.dot.value.trim(); obj.cat = els.cat.value.trim() || "General"; obj.body = els.body.value; }
+      else if (coll === "instructions") { obj.body = els.body.value; obj.bodyEs = els.bodyEs.value.trim(); }
+      if (!item) DATA[coll].push(obj);
+      saveState(); renderAll(); App.closeModal(); toast("Saved");
+    };
+    acts.appendChild(cancel); acts.appendChild(save); modal.appendChild(acts);
+    document.getElementById("overlay").classList.add("open");
+    els.name.focus();
+  },
+  resetAll(){
+    if (confirm("Replace your library with the built-in starter library? Your own items are removed. Export first if unsure.")) {
+      DATA = JSON.parse(JSON.stringify(DEFAULT_DATA)); FAVS = [];
+      saveState(); renderAll(); toast("Starter library restored");
+    }
+  }
+};
+
+// ====================== HANDOUT PACKET ======================
+const Packet = {
+  sel: [],
+  lang: "en",
+
+  open(){
+    const modal = document.getElementById("modal");
+    modal.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = "Handout packet"; modal.appendChild(h);
+    const c = document.createElement("div"); c.className = "cat";
+    c.textContent = "Pick the handouts this patient leaves with. They print as one job, one handout per page.";
+    modal.appendChild(c);
+
+    const tg = document.createElement("div"); tg.className = "langtoggle"; tg.style.marginBottom = "10px";
+    const be = document.createElement("button"); be.textContent = "English"; be.className = this.lang === "en" ? "on" : "";
+    const bs = document.createElement("button"); bs.textContent = "Español"; bs.className = this.lang === "es" ? "on" : "";
+    be.onclick = ()=>{ this.lang = "en"; be.classList.add("on"); bs.classList.remove("on"); this.list(); };
+    bs.onclick = ()=>{ this.lang = "es"; bs.classList.add("on"); be.classList.remove("on"); this.list(); };
+    tg.appendChild(be); tg.appendChild(bs); modal.appendChild(tg);
+
+    const box = document.createElement("div");
+    box.id = "pk-list";
+    box.style.cssText = "max-height:46vh; overflow:auto; border:1px solid var(--line); border-radius:10px; padding:6px 10px;";
+    modal.appendChild(box);
+
+    const cnt = document.createElement("p"); cnt.className = "hint"; cnt.id = "pk-count"; cnt.style.margin = "8px 0 0";
+    modal.appendChild(cnt);
+
+    const acts = document.createElement("div"); acts.className = "modal-actions";
+    const mk = (label, cls, fn)=>{ const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = label; b.onclick = fn; acts.appendChild(b); };
+    mk("Print the packet", "primary", ()=>this.print());
+    mk("Clear", "", ()=>{ this.sel = []; this.list(); });
+    mk("Close", "", ()=>App.closeModal());
+    modal.appendChild(acts);
+
+    this.list();
+    document.getElementById("overlay").classList.add("open");
+  },
+
+  list(){
+    const box = document.getElementById("pk-list");
+    if (!box) return;
+    box.innerHTML = "";
+    const cats = [];
+    DATA.instructions.forEach(i=>{ const k = i.cat || "Patient instructions"; if (cats.indexOf(k) < 0) cats.push(k); });
+    cats.forEach(k=>{
+      const hd = document.createElement("p");
+      hd.style.cssText = "margin:10px 0 4px; font-weight:600; font-size:.9em; color:var(--muted);";
+      hd.textContent = k;
+      box.appendChild(hd);
+      DATA.instructions.filter(i=>(i.cat || "Patient instructions") === k).forEach(i=>{
+        const on = this.sel.indexOf(i.id) > -1;
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex; gap:9px; align-items:center; padding:5px 0; cursor:pointer;";
+        const bx = document.createElement("button");
+        bx.className = "chip" + (on ? " on" : "");
+        bx.style.cssText = "flex:0 0 auto; min-width:30px; text-align:center;";
+        bx.textContent = on ? "✓" : "  ";
+        const nm = document.createElement("span");
+        nm.textContent = i.name;
+        if (this.lang === "es" && !i.bodyEs) {
+          const w = document.createElement("span"); w.className = "hint"; w.style.marginLeft = "7px";
+          w.textContent = "(English only)";
+          nm.appendChild(w);
+        }
+        row.appendChild(bx); row.appendChild(nm);
+        row.onclick = ()=>{
+          const j = this.sel.indexOf(i.id);
+          if (j > -1) this.sel.splice(j, 1); else this.sel.push(i.id);
+          this.list();
+        };
+        box.appendChild(row);
+      });
+    });
+    const cnt = document.getElementById("pk-count");
+    if (cnt) cnt.textContent = this.sel.length === 0 ? "Nothing picked yet."
+      : this.sel.length + " handout" + (this.sel.length > 1 ? "s" : "") + " picked, printing as " + this.sel.length + " page" + (this.sel.length > 1 ? "s" : "") + ".";
+  },
+
+  print(){
+    if (!this.sel.length) { toast("Pick at least one handout"); return; }
+    const host = document.getElementById("printpacket");
+    if (!host) return;
+    host.innerHTML = "";
+    const stamp = (this.lang === "es" ? "Entregado el " : "Provided ") + new Date().toLocaleDateString() +
+      (this.lang === "es" ? ". Si tiene preguntas, llame al consultorio." : ". Questions? Call the office.");
+    this.sel.forEach(id=>{
+      const item = DATA.instructions.find(x=>x.id === id);
+      if (!item) return;
+      const es = this.lang === "es" && item.bodyEs;
+      const raw = Tok.apply(es ? item.bodyEs : item.body).replace(PH_RE, "________");
+      const pg = document.createElement("div"); pg.className = "pk";
+      const h1 = document.createElement("h1"); h1.textContent = item.name;
+      const cl = document.createElement("div"); cl.className = "clin"; cl.textContent = DATA.clinic || " ";
+      const pre = document.createElement("pre"); pre.textContent = raw;
+      const fit = App.fitPrint(raw);
+      pre.style.fontSize = fit.size + "pt";
+      pre.style.lineHeight = String(fit.lh);
+      const ft = document.createElement("div"); ft.className = "foot"; ft.textContent = stamp;
+      pg.appendChild(h1); pg.appendChild(cl); pg.appendChild(pre); pg.appendChild(ft);
+      host.appendChild(pg);
+    });
+    App.closeModal();
+    document.body.classList.add("packet");
+    window.print();
+    setTimeout(()=>document.body.classList.remove("packet"), 600);
+  }
+};
+
+// ====================== BOOT ======================
+const EMR_SAMPLE = `ID: [[NAME]] is a [[AGE]] [[SEX]] on GLP-1 receptor agonist therapy.
+Last visit: [[LASTVISIT]]
+[[LAB:A1C]]
+[[WT]]`;
+function renderEmrPreview(){
+  const el = document.getElementById("emr-preview");
+  if (!el) return;
+  el.textContent = Tok.apply(EMR_SAMPLE);
+}
+function renderSigPreview(){
+  const el = document.getElementById("sig-preview");
+  if (!el) return;
+  el.textContent = "Sincerely,\n\n" + sigBlock();
+}
+
+function renderAll(){
+  renderPhrases(); renderInstructions();
+  renderFavbar(); ED.renderLists();
+  const ci = document.getElementById("set-clinic");
+  if (ci && document.activeElement !== ci) ci.value = DATA.clinic || "";
+  const si = document.getElementById("set-sig");
+  if (si && document.activeElement !== si) si.value = DATA.sig || "";
+  renderSigPreview();
+  const es = document.getElementById("set-emr");
+  if (es) es.value = DATA.emr || "generic";
+  renderEmrPreview();
+  saveState();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  loadState();
+  document.querySelectorAll("nav.tabs button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.getElementById("globalsearch").value = "";
+      App.showTab(b.dataset.tab);
+    });
+  });
+  document.getElementById("globalsearch").addEventListener("input", (e)=>App.search(e.target.value));
+  const qinput = document.getElementById("qinput");
+  qinput.addEventListener("input", ()=>Launcher.filter(qinput.value));
+  qinput.addEventListener("keydown", (e)=>Launcher.key(e));
+  document.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape") { App.closeModal(); Launcher.close(); return; }
+    if (Launcher.isOpen()) return;
+    const t = e.target;
+    const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); Launcher.open(""); return; }
+    if (!typing && e.key === "." && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        !document.getElementById("overlay").classList.contains("open")) {
+      e.preventDefault(); Launcher.open(".");
+    }
+  });
+  document.getElementById("set-clinic").addEventListener("input", (e)=>{ DATA.clinic = e.target.value; saveState(); });
+  const sigBox = document.getElementById("set-sig");
+  if (sigBox) sigBox.addEventListener("input", (e)=>{ DATA.sig = e.target.value; saveState(); renderSigPreview(); });
+  const emrSel = document.getElementById("set-emr");
+  if (emrSel) emrSel.addEventListener("change", (e)=>{
+    DATA.emr = e.target.value === "epic" ? "epic" : "generic";
+    saveState(); renderEmrPreview();
+    toast(DATA.emr === "epic" ? "Epic SmartLinks on" : "Generic cues on");
+  });
+  // Each tab commit registers its own init here.
+  if (typeof START   !== "undefined") START.init();
+  if (typeof TITRATE !== "undefined") TITRATE.init();
+  if (typeof SIDEFX  !== "undefined") SIDEFX.init();
+  if (typeof COVER   !== "undefined") COVER.init();
+  if (typeof MONITOR !== "undefined") MONITOR.init();
+  if (typeof PROTECT !== "undefined") PROTECT.init();
+  if (typeof BILLING !== "undefined") BILLING.init();
+  renderAll();
+  App.checkBackup();
+  // A colleague opening this for the first time lands on the guide, not on a wall of cards
+  if (FIRST_RUN) App.showTab("guide");
+});
+
+</script>
+</body>
+</html>
