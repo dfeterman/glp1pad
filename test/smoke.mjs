@@ -75,6 +75,31 @@ if (parents.length) console.log('  non-billable parent codes shipped:', parents.
 // the dose-recommendation guard is visible on load
 checks.doseGuard = await page.isVisible('#doseguard');
 
+// --- the palette actually applies ---
+// A stray tag or a bad rule can leave the whole :root block dropped by CSS
+// error recovery while the text still sits in the file, so assert the
+// computed values, never the source.
+const css = await page.evaluate(() => {
+  const root = getComputedStyle(document.documentElement);
+  const need = ['--bg','--card','--ink','--muted','--accent','--accent-soft','--accent-ink','--line',
+                '--sev-mild','--sev-mod','--sev-high','--sev-flag','--ok','--radius','--shadow'];
+  const unset = need.filter(v => !root.getPropertyValue(v).trim());
+  const btn = document.querySelector('nav.tabs button.active');
+  return {
+    unset,
+    accent: root.getPropertyValue('--accent').trim(),
+    bodyBg: getComputedStyle(document.body).backgroundColor,
+    activeTabInk: btn ? getComputedStyle(btn).color : '',
+    styleTags: document.querySelectorAll('style').length
+  };
+});
+checks.cssVarsSet   = css.unset.length === 0;
+checks.cssAccent    = css.accent === '#116b5e';
+checks.cssBodyPaint = css.bodyBg === 'rgb(238, 242, 242)';
+checks.cssOneSheet  = css.styleTags === 1;
+if (css.unset.length) console.log('  UNSET custom properties:', css.unset.join(', '));
+if (css.bodyBg !== 'rgb(238, 242, 242)') console.log('  body background is', css.bodyBg, '- expected the cool surface');
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);
