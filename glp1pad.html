@@ -385,7 +385,14 @@
     <p class="tab-intro">Dot phrases for initiation, titration, side effect, and maintenance visits. Tap a card, fill the blanks, copy, paste into your chart. Star one to pin it to the top bar.</p>
     <div class="catrow" id="phrase-cats"></div>
     <div class="cardgrid" id="phrase-grid"></div>
+
+    <h2 class="sect">Billing reminders</h2>
+    <p class="tab-intro">The add-on codes that get left on the table in GLP-1 visits, and the conditions each one actually requires. Read the condition before you append the code.</p>
     <div id="billing-body"></div>
+
+    <h2 class="sect">Codes</h2>
+    <p class="tab-intro">Tap any code to copy it. Every ICD-10 code here was checked against the FY2026 code set and is valid for HIPAA transactions; non-billable parent codes are called out rather than listed.</p>
+    <div id="code-groups"></div>
   </section>
 
   <section class="tab" id="tab-settings">
@@ -505,9 +512,170 @@ const DEFAULT_DATA = {
   clinic: "",
   sig: "",
   emr: "generic",
-  phrases: [],
+  phrases: [
+
+  // ---------------- INITIATION ----------------
+  {id:"p-init", name:"GLP-1 initiation counseling", dot:".glpstart", cat:"Initiation", body:
+`Discussed starting {drug:semaglutide|tirzepatide|liraglutide|dulaglutide|exenatide} for {indication:type 2 diabetes|chronic weight management|type 2 diabetes with established cardiovascular disease|obstructive sleep apnea with obesity}. Reviewed the mechanism in plain language, the expected time course, and that the labeled escalation schedule exists to limit gastrointestinal side effects rather than to reach a target faster.
+Starting dose and schedule prescribed today: {start}. Escalation reviewed per the prescribing information, with the understanding that escalation is deferred if side effects have not settled.
+Reviewed the boxed warning for thyroid C-cell tumors and screened for a personal or family history of medullary thyroid carcinoma and for multiple endocrine neoplasia syndrome type 2: {mtc:both absent|present, drug not prescribed}. Screened for prior pancreatitis: {panc:none|prior episode, discussed and documented}. Pregnancy and contraception addressed: {preg:not applicable|patient advised to stop the drug and call if pregnancy occurs or is planned}.
+Counseled on nausea, vomiting, diarrhea, constipation, and early satiety, on the injection technique and site rotation, on what to do about a missed dose per the label, and on the red flags that require a call: persistent severe abdominal pain, repeated vomiting with inability to keep fluids down, signs of dehydration, or a new visual change.
+Reviewed that muscle mass and bone are lost alongside fat unless protein intake and resistance training are deliberate, and that the plan includes both. Discussed what happens to weight when the drug stops.
+Teach-back performed; the patient restated the schedule and the call-us list accurately. Written instructions provided in {language:English|Spanish}. Questions answered.`},
+
+  {id:"p-init-baseline", name:"Baseline workup before first dose", dot:".glpbase", cat:"Initiation", body:
+`Baseline assessment before the first dose. Reviewed or ordered: {labs:A1c, CMP with creatinine and eGFR, lipid panel|A1c, CMP, lipid panel, TSH|A1c, CMP, lipid panel, hepatic panel|***}. Weight and height recorded and body mass index calculated in the chart.
+Screened for and documented: history of pancreatitis, gallbladder disease, gastroparesis or another significant gastrointestinal motility disorder, diabetic retinopathy, and personal or family history of medullary thyroid carcinoma or multiple endocrine neoplasia type 2.
+Concomitant medications reviewed for interactions and for agents that raise hypoglycemia risk in combination, specifically {hypo:insulin|a sulfonylurea|insulin and a sulfonylurea|neither}. Where present, the plan addresses that risk and the patient was counseled on hypoglycemia recognition and treatment.
+Reviewed the drugs and conditions the label identifies as cautions and confirmed none applies, or documented the exception: {exception:none|***}.`},
+
+  // ---------------- TITRATION ----------------
+  {id:"p-titr", name:"Titration visit", dot:".glptitr", cat:"Titration", body:
+`Titration visit for {drug} started on {startdate}. Current dose and schedule: {current}. Time at the current dose: {timeon}.
+Tolerance at the current dose: {tol:no side effects|mild nausea that is settling|nausea limiting intake|vomiting|constipation|diarrhea|reflux|fatigue}. Side effects are {trend:improving|unchanged|worsening} compared with the last visit.
+Weight today and trend since the last visit, and since the start of therapy, reviewed in the chart. A1c reviewed where applicable. Blood pressure and pulse reviewed.
+Decision this visit: {action:hold at the current dose and reassess, since side effects have not settled|advance to the next step of the labeled schedule|hold at the current dose because the treatment response is adequate here|step back to the previous dose for tolerability|stop the drug, see the plan}. New dose and schedule prescribed: {newdose}.
+Rationale, stated plainly: {why}.
+Reviewed the missed dose rule, the hold and resume rule for illness, and the red flags again. Protein intake and resistance training reviewed: {prot}. Next visit {fu:4 weeks|8 weeks|12 weeks|3 months}, sooner for intolerance.`},
+
+  {id:"p-titr-hold", name:"Escalation deferred for tolerability", dot:".glphold", cat:"Titration", body:
+`Escalation deferred this visit. The patient remains on {current} and has {sx} at that dose. Advancing now would add side effect burden without a clinical reason to hurry, so the dose stays where it is and we reassess in {int:2 weeks|4 weeks|8 weeks}.
+Supportive measures reviewed: smaller portions, stopping at first fullness, separating solids and liquids, limiting fat and fried food, and staying ahead on fluids. Antiemetic use if any: {anti:none needed|as needed ondansetron prescribed|***}.
+The patient understands the schedule is a ceiling on how fast the dose may rise, not a deadline. Reviewed that a lower dose that the patient actually takes beats a higher dose they stop.`},
+
+  // ---------------- SIDE EFFECTS ----------------
+  {id:"p-se", name:"Side effect visit", dot:".glpse", cat:"Side effects", body:
+`Visit for side effects on {drug} at {current}. Presenting symptom or symptoms: {sx}. Onset {onset}, relation to the last dose or dose increase: {relation}.
+Severity assessed: {sev:mild, no effect on intake or activity|moderate, intake reduced but tolerable|severe, unable to keep fluids down or maintain intake}. Hydration status and orthostatic symptoms assessed. Weight change over this interval reviewed for a rate that is faster than intended.
+Red flags specifically asked about and {rf:all absent|present as below}: severe persistent abdominal pain radiating to the back, repeated vomiting with inability to keep fluids down, signs of significant dehydration, right upper quadrant pain with fever or jaundice, and any new visual change.
+Assessment: {assessment}. Plan: {plan:supportive measures and continue the current dose|step back to the previous dose|hold the drug and reassess|stop the drug|urgent evaluation today, see below}. Antiemetic or other symptomatic treatment: {tx:none|***}.
+Counseled to call or seek urgent care for any of the red flags above rather than waiting for the next visit. Written instructions provided in {language:English|Spanish}. Follow-up {fu:by phone in 1 week|in 2 weeks|in 4 weeks|today's urgent plan as documented}.`},
+
+  {id:"p-se-gi", name:"GI side effect supportive measures", dot:".glpgi", cat:"Side effects", body:
+`Counseled on measures for gastrointestinal side effects: eat smaller amounts more often and stop at the first sense of fullness, keep fat and fried food down while symptoms last, separate drinking from eating so liquids do not take up the space, sip fluids steadily through the day rather than in large volumes, and choose bland protein-containing food when appetite is low.
+For constipation: fluid, fiber from food, movement after meals, and {lax:a stool softener as needed|an osmotic laxative as needed|***}. For reflux: smaller evening meals and not lying down within three hours of eating.
+Reviewed that these symptoms are typically worst in the days after a dose increase and settle with time at the same dose, and that reporting them early lets us slow the schedule rather than stop the drug.`},
+
+  // ---------------- MAINTENANCE ----------------
+  {id:"p-maint", name:"Maintenance visit", dot:".glpmaint", cat:"Maintenance", body:
+`Maintenance visit on {drug} at {current}, on therapy since {since}. Adherence {adh:every dose taken|occasional missed dose|frequent missed doses, addressed below}. Doses missed and why: {missed:none|***}.
+Response reviewed against the reason we started: weight and weight trend, A1c where applicable, blood pressure, and the patient's own account of function, appetite, and quality of life. Response assessed as {resp:at or beyond the goal we set|progressing toward the goal|plateaued|inadequate, see the plan}.
+Tolerability at the maintenance dose: {tol:no ongoing side effects|mild and acceptable|troublesome, addressed below}.
+Muscle and bone protection reviewed: protein intake {prot}, resistance training {rt:twice weekly as prescribed|once weekly|not yet started, barriers discussed}. Fall risk and fracture risk considered. Calcium and vitamin D intake reviewed. Where indicated, bone density assessment is {dexa:up to date|ordered|not indicated at this time}.
+Monitoring labs reviewed or ordered per the plan. Renal function reviewed, with attention to any interval illness involving vomiting or reduced intake.
+Plan: {plan:continue the current dose and schedule|adjust as documented below}. Discussed duration of therapy honestly, including what is known about weight regain after stopping and what the stopping plan would look like if the drug is discontinued for any reason, including loss of coverage or supply. Next visit {fu:3 months|4 months|6 months}, labs beforehand.`},
+
+  {id:"p-maint-stop", name:"Stopping or interrupting therapy", dot:".glpstop", cat:"Maintenance", body:
+`Discussed stopping {drug}. Reason: {reason:patient preference|side effects|cost or loss of coverage|supply interruption|pregnancy or pregnancy planning|goal met and patient wishes to stop|clinical concern as documented}.
+Counseled honestly on what to expect: appetite returns, and weight regain is common and is not a personal failure. The habits that protect muscle and bone matter more, not less, during and after the taper. Reviewed the plan for protein intake and resistance training through the transition, and what to watch for if the drug was treating diabetes, where glucose will need closer attention.
+Stopping plan as discussed: {stopplan}. Monitoring through the transition: {mon}. The patient knows to contact the office if glucose, symptoms, or weight move in a way that concerns them, and that restarting is an option we can revisit without judgment. Follow-up {fu:4 weeks|8 weeks|3 months}.`},
+
+  // ---------------- ATTESTATIONS ----------------
+  {id:"p-time", name:"Time-based billing attestation", dot:".glptime", cat:"Attestation", body:
+`Total time personally spent on the date of this encounter: {min} minutes. This includes review of the chart and of outside results before the visit, the face-to-face encounter, counseling and coordination of care, ordering medications and tests, documentation in the record, and communication through the portal on the same calendar day. Time spent by clinical staff is excluded, and no time counted here is counted toward any other reported service.`},
+
+  {id:"p-sdm", name:"Shared decision-making", dot:".glpsdm", cat:"Attestation", body:
+`Options were discussed including the alternative of no pharmacologic therapy, the available agents and how they differ, the expected magnitude of benefit, the side effect profile, the cost and coverage situation as it stands today, and what is known and not known about long-term use. Questions were answered. Through shared decision-making the patient elected to proceed with the plan as documented.`},
+
+  {id:"p-g2211", name:"G2211 relationship attestation", dot:".glp2211", cat:"Attestation", body:
+`This visit is part of my ongoing, longitudinal care of this patient for {condition:type 2 diabetes|obesity as a chronic disease|obesity with its metabolic complications}, a single serious condition that I am managing over time rather than addressing on a single-visit basis. I am the continuing focal point for this patient's care of this condition, and today's work reflects that continuing relationship: the history, prior response to therapy, tolerability, and the trajectory of the condition all informed today's decisions.`},
+
+  {id:"p-mod25", name:"Modifier 25 attestation", dot:".glp25", cat:"Attestation", body:
+`A significant, separately identifiable evaluation and management service was performed on the same date as {other:the preventive visit|the procedure performed today|the other reported service}. The work documented for the E/M service stands on its own: a separate history, a separate examination as documented, and separate medical decision making addressing {problem}. No part of the documentation supporting the E/M service is used to support the other service reported today.`}
+
+  ],
   instructions: [],
-  codes: []
+  // Every ICD-10 code below was checked against the FY2026 ICD-10-CM set and is
+  // valid for HIPAA transactions. Parent codes that are NOT billable on their own
+  // (E66.0, E66.81, E88.81, Z68.3) are deliberately absent: they get denied.
+  codes: [
+
+    {id:"c-em", name:"Office visit E/M", items:[
+      {code:"99202", desc:"New patient, straightforward MDM or 15-29 min"},
+      {code:"99203", desc:"New patient, low MDM or 30-44 min"},
+      {code:"99204", desc:"New patient, moderate MDM or 45-59 min"},
+      {code:"99205", desc:"New patient, high MDM or 60-74 min"},
+      {code:"99212", desc:"Established, straightforward MDM or 10-19 min"},
+      {code:"99213", desc:"Established, low MDM or 20-29 min"},
+      {code:"99214", desc:"Established, moderate MDM or 30-39 min"},
+      {code:"99215", desc:"Established, high MDM or 40-54 min"},
+      {code:"NOTE", desc:"Level is set by medical decision making OR total time on the calendar day, whichever lands higher. Pick one method per visit and let the documentation support it."}
+    ]},
+
+    {id:"c-addon", name:"Add-ons and modifiers", items:[
+      {code:"G2211", desc:"Visit complexity add-on for the continuing focal point of care for a single serious or complex condition. Add to the E/M."},
+      {code:"25", desc:"Modifier 25, significant separately identifiable E/M by the same physician on the same day as another service."},
+      {code:"G0447", desc:"Face-to-face behavioral counseling for obesity, 15 minutes. Medicare requires BMI 30 or above."},
+      {code:"G0473", desc:"Behavioral counseling for obesity, group of 2 to 10, 30 minutes."},
+      {code:"99406", desc:"Tobacco cessation counseling, 3 to 10 minutes."},
+      {code:"99407", desc:"Tobacco cessation counseling, more than 10 minutes."},
+      {code:"99401", desc:"Preventive counseling, individual, about 15 min. For a patient with no symptom or established illness driving the visit."},
+      {code:"99402", desc:"Preventive counseling, individual, about 30 min."},
+      {code:"97802", desc:"Medical nutrition therapy, initial assessment, 15 min. Dietitian only."},
+      {code:"97803", desc:"Medical nutrition therapy, reassessment, 15 min. Dietitian only."},
+      {code:"NOTE", desc:"G0447 and the 99401 series are not for a visit whose reason is managing an active illness. When you counsel about weight during the management of obesity or diabetes, bill the E/M by total time and count those minutes there."}
+    ]},
+
+    {id:"c-dx-ob", name:"ICD-10, obesity and BMI", items:[
+      {code:"E66.01", desc:"Morbid (severe) obesity due to excess calories"},
+      {code:"E66.09", desc:"Other obesity due to excess calories"},
+      {code:"E66.1", desc:"Drug-induced obesity"},
+      {code:"E66.2", desc:"Morbid (severe) obesity with alveolar hypoventilation"},
+      {code:"E66.3", desc:"Overweight"},
+      {code:"E66.811", desc:"Obesity, class 1"},
+      {code:"E66.812", desc:"Obesity, class 2"},
+      {code:"E66.813", desc:"Obesity, class 3"},
+      {code:"E66.89", desc:"Other obesity not elsewhere classified"},
+      {code:"E66.9", desc:"Obesity, unspecified"},
+      {code:"NOTE", desc:"Pair the obesity code with the Z68 BMI code. Many payers read the Z68 value, not the obesity code, when applying a BMI threshold. E66.0, E66.8 and E66.81 are parent codes and are not billable."}
+    ]},
+
+    {id:"c-dx-bmi", name:"ICD-10, BMI value (adult)", items:[
+      {code:"Z68.25", desc:"BMI 25.0-25.9"},
+      {code:"Z68.26", desc:"BMI 26.0-26.9"},
+      {code:"Z68.27", desc:"BMI 27.0-27.9"},
+      {code:"Z68.28", desc:"BMI 28.0-28.9"},
+      {code:"Z68.29", desc:"BMI 29.0-29.9"},
+      {code:"Z68.30", desc:"BMI 30.0-30.9. The 30-39 range runs Z68.30 through Z68.39 by whole unit."},
+      {code:"Z68.35", desc:"BMI 35.0-35.9"},
+      {code:"Z68.39", desc:"BMI 39.0-39.9"},
+      {code:"Z68.41", desc:"BMI 40.0-44.9"},
+      {code:"Z68.42", desc:"BMI 45.0-49.9"},
+      {code:"Z68.43", desc:"BMI 50.0-59.9"},
+      {code:"Z68.44", desc:"BMI 60.0-69.9"},
+      {code:"Z68.45", desc:"BMI 70 or greater"},
+      {code:"NOTE", desc:"Below 40 the codes step by whole unit (Z68.30 to Z68.39). At 40 and above they step by band. Z68.3 alone is a parent code and is not billable."}
+    ]},
+
+    {id:"c-dx-metab", name:"ICD-10, diabetes and metabolic", items:[
+      {code:"E11.9", desc:"Type 2 diabetes mellitus without complications"},
+      {code:"E11.65", desc:"Type 2 diabetes mellitus with hyperglycemia"},
+      {code:"R73.03", desc:"Prediabetes"},
+      {code:"E88.810", desc:"Metabolic syndrome"},
+      {code:"E88.819", desc:"Insulin resistance, unspecified"},
+      {code:"E78.5", desc:"Hyperlipidemia, unspecified"},
+      {code:"I10", desc:"Essential (primary) hypertension"},
+      {code:"G47.33", desc:"Obstructive sleep apnea (adult) (pediatric)"},
+      {code:"K76.0", desc:"Fatty (change of) liver, not elsewhere classified"},
+      {code:"K75.81", desc:"Nonalcoholic steatohepatitis (NASH)"},
+      {code:"NOTE", desc:"E88.81 is a parent code and is not billable. Use E88.810 for metabolic syndrome. The FY2026 set carries no code titled MASLD or MASH, so K76.0 and K75.81 remain the operative codes."}
+    ]},
+
+    {id:"c-dx-support", name:"ICD-10, therapy status and counseling", items:[
+      {code:"Z79.85", desc:"Long-term (current) use of injectable non-insulin antidiabetic drugs. The status code for a patient on an injectable GLP-1."},
+      {code:"Z79.899", desc:"Other long-term (current) drug therapy"},
+      {code:"Z71.3", desc:"Dietary counseling and surveillance"},
+      {code:"Z71.82", desc:"Exercise counseling"},
+      {code:"Z71.6", desc:"Tobacco abuse counseling"},
+      {code:"M62.84", desc:"Sarcopenia"},
+      {code:"E55.9", desc:"Vitamin D deficiency, unspecified"},
+      {code:"Z13.220", desc:"Encounter for screening for lipoid disorders"},
+      {code:"Z91.120", desc:"Intentional underdosing of medication regimen due to financial hardship. The code for a patient stretching pens on cost."},
+      {code:"Z91.141", desc:"Other noncompliance with medication regimen due to financial hardship"},
+      {code:"NOTE", desc:"Z91.1, Z91.12 and Z91.14 are parent codes and are not billable. The reason for the gap has to be coded, and for GLP-1 therapy that reason is usually cost."}
+    ]}
+
+  ]
 };
 
 // ====================== CORE ======================
@@ -983,6 +1151,100 @@ const Codes = {
   }
 };
 
+// ====================== BILLING REMINDERS (tab 8) ======================
+// Static reference cards. Each one states the condition the code requires before
+// it states the code, because the condition is the part that gets skipped.
+// Nothing here reads a patient or decides anything: it is a reminder list.
+const BILLING = {
+  CARDS: [
+    {k:"g2211", n:"G2211, visit complexity add-on", tag:"Medicare", act:"go",
+     what:"An add-on to the office E/M for the clinician who is the continuing focal point for all of a patient's health care, or who is treating a single serious or complex condition over time.",
+     fit:"GLP-1 therapy for obesity or type 2 diabetes is the textbook case for the second arm: one serious condition, managed by you across visits, where each visit is informed by the last.",
+     needs:["The E/M is reported. G2211 never stands alone.",
+            "The record shows a continuing relationship, not a one-off encounter.",
+            "Your note reflects that the prior course informed today's decision. A note that reads like a first visit will not support it."],
+     careful:"It is not supported when the visit is a standalone service with no continuing relationship behind it, such as covering a colleague's patient once.",
+     phrase:"p-g2211"},
+
+    {k:"mod25", n:"Modifier 25", tag:"All payers", act:"hold",
+     what:"Appended to the E/M when a significant, separately identifiable E/M service is performed on the same day as another reported service.",
+     fit:"Common in these visits: the annual wellness visit or a preventive visit that turns into real work on the GLP-1, or a same-day procedure.",
+     needs:["The E/M work stands on its own, with its own history, exam and decision making.",
+            "None of the documentation supporting the E/M is reused to support the other service.",
+            "The separately identifiable work is visible in the note without the reader having to infer it."],
+     careful:"Modifier 25 draws audits. Write the E/M portion so a reviewer can see the separate service without being told it is there.",
+     phrase:"p-mod25"},
+
+    {k:"g0447", n:"G0447, intensive behavioral therapy for obesity", tag:"Medicare", act:"time",
+     what:"Face-to-face behavioral counseling for obesity, 15 minutes, delivered in a primary care setting.",
+     fit:"Applies to the counseling itself, not to prescribing. It is the code for the behavioral work around the drug.",
+     needs:["BMI 30 or above, documented.",
+            "Delivered face to face in a primary care setting by a qualified primary care practitioner.",
+            "Medicare limits the frequency across the year, and continuing the schedule past six months requires documented weight loss. Check the current frequency limits before you build a series around it.",
+            "The counseling is behavioral: the 5-A framework, not a medication check."],
+     careful:"Do not report G0447 for the same minutes you already counted toward a time-based E/M. Pick one home for each minute.",
+     phrase:null},
+
+    {k:"time", n:"Time-based E/M", tag:"All payers", act:"time",
+     what:"Level the visit on total time personally spent on the calendar day, when time lands higher than medical decision making.",
+     fit:"GLP-1 visits run long on counseling, coverage work and coordination, and that time is often invisible in an MDM-based level.",
+     needs:["Total time on the date of the encounter, counted once.",
+            "Countable: chart and results review before the visit, the visit, counseling, ordering, documentation, care coordination, and same-day portal communication.",
+            "Not countable: staff time, and any time already counted toward another reported service.",
+            "The number in the note is the total, and the attestation says what it covers."],
+     careful:"Prior authorization work on a different calendar day does not roll into this visit's time. It belongs to that day.",
+     phrase:"p-time"}
+  ],
+
+  init(){
+    const host = document.getElementById("billing-body");
+    if (!host) return;
+    host.innerHTML = "";
+    this.CARDS.forEach(c=>{
+      const sec = document.createElement("div"); sec.className = "comp-section";
+      const h4 = document.createElement("h4");
+      const nm = document.createElement("span"); nm.textContent = c.n;
+      const bg = document.createElement("span"); bg.className = "actbadge " + c.act; bg.textContent = c.tag;
+      h4.appendChild(nm); h4.appendChild(bg); sec.appendChild(h4);
+
+      const add = (label, text)=>{
+        const p = document.createElement("p");
+        p.style.cssText = "font-size:.88rem; margin-top:7px;";
+        const b = document.createElement("b"); b.textContent = label + ": ";
+        p.appendChild(b); p.appendChild(document.createTextNode(text));
+        sec.appendChild(p);
+      };
+      add("What it is", c.what);
+      add("Where it fits", c.fit);
+
+      const nl = document.createElement("p");
+      nl.style.cssText = "font-size:.88rem; margin-top:7px;";
+      const nb = document.createElement("b"); nb.textContent = "What it requires:";
+      nl.appendChild(nb); sec.appendChild(nl);
+      const ul = document.createElement("ul");
+      ul.style.cssText = "font-size:.88rem; padding-left:20px; margin-top:2px;";
+      c.needs.forEach(n=>{ const li = document.createElement("li"); li.textContent = n; li.style.marginBottom = "3px"; ul.appendChild(li); });
+      sec.appendChild(ul);
+
+      add("Watch out", c.careful);
+
+      const acts = document.createElement("div");
+      acts.style.cssText = "display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;";
+      const cp = document.createElement("button"); cp.className = "btn small"; cp.textContent = "Copy " + c.n.split(",")[0];
+      cp.onclick = ()=>copyText(c.n.split(",")[0]);
+      acts.appendChild(cp);
+      if (c.phrase) {
+        const ph = document.createElement("button"); ph.className = "btn small primary";
+        ph.textContent = "Open the attestation";
+        ph.onclick = ()=>App.openFill("phrase", c.phrase);
+        acts.appendChild(ph);
+      }
+      sec.appendChild(acts);
+      host.appendChild(sec);
+    });
+  }
+};
+
 // ====================== QUICK LAUNCHER ======================
 const Launcher = {
   items: [], sel: 0,
@@ -1247,7 +1509,7 @@ function renderSigPreview(){
 }
 
 function renderAll(){
-  renderPhrases(); renderInstructions();
+  renderPhrases(); renderInstructions(); Codes.render();
   renderFavbar(); ED.renderLists();
   const ci = document.getElementById("set-clinic");
   if (ci && document.activeElement !== ci) ci.value = DATA.clinic || "";

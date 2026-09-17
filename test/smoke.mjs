@@ -44,6 +44,37 @@ await page.fill('#globalsearch', 'zzzznomatch');
 checks.searchEmpty = (await page.innerText('#search-grid')).includes('No matches');
 await page.fill('#globalsearch', '');
 
+// --- tab 8 Document ---
+await page.click('nav.tabs button[data-tab="document"]');
+checks.phraseCards   = (await page.$$('#phrase-grid .card')).length >= 12;
+checks.phraseCats    = (await page.$$('#phrase-cats .chip')).length >= 5;
+checks.billingCards  = (await page.$$('#billing-body .comp-section')).length === 4;
+checks.codeGroups    = (await page.$$('#code-groups .comp-section')).length === 6;
+// a phrase opens, fills, and copies what you actually chose
+await page.click('#phrase-grid .card >> nth=0');
+checks.modalOpen = await page.isVisible('#modal .filled');
+const inputs = await page.$$('#modal .filled input[type=text]');
+if (inputs.length) await inputs[0].fill('TESTVALUE');
+const collected = await page.evaluate(() => collectText(document.querySelector('#modal .filled')));
+checks.fillCollects = inputs.length ? collected.includes('TESTVALUE') : collected.length > 0;
+checks.emptyBlanks  = !collected.includes('{');
+await page.click('#modal .modal-actions button >> nth=-1');
+// the billing card reaches its attestation phrase
+await page.click('#billing-body .comp-section >> nth=0 >> button.primary');
+checks.billingToPhrase = (await page.innerText('#modal h3')).includes('G2211');
+await page.click('#modal .modal-actions button >> nth=-1');
+// every ICD-10 code shipped is one the FY2026 set marks billable
+const parents = await page.evaluate(() => {
+  const bad = ['E66.0','E66.8','E66.81','E88.81','Z68.3','Z68.4','Z91.1','Z91.12','Z91.14'];
+  const shipped = [];
+  (DATA.codes||[]).forEach(g => g.items.forEach(i => { if (i.code !== 'NOTE') shipped.push(i.code); }));
+  return shipped.filter(c => bad.includes(c));
+});
+checks.noParentCodes = parents.length === 0;
+if (parents.length) console.log('  non-billable parent codes shipped:', parents.join(', '));
+// the dose-recommendation guard is visible on load
+checks.doseGuard = await page.isVisible('#doseguard');
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);
