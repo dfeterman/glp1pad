@@ -7,25 +7,27 @@
 <title>GLP-1 Pad, Prescriber Companion</title>
 <style>
   :root{
-    /* GLP-1 Pad runs a cool surface and a teal accent so it never gets
-       mistaken for RheumPad or WholePad, which share an identical warm
-       palette. Everything structural below is theirs, unchanged. */
-    --bg:#eef2f2; --card:#ffffff; --ink:#1f272b; --muted:#64727a;
-    --accent:#116b5e; --accent-soft:#dcedea; --accent-ink:#0b4b42;
-    --line:#dae1e1;
+    /* GLP-1 Pad runs a warm neutral surface and a plum accent so it never gets
+       mistaken for RheumPad or WholePad, which share an identical cream and
+       slate theme. Everything structural below is theirs, unchanged.
+       Plum is the one accent hue that can never be read as a severity color:
+       it sits 87 from the mild-tier green and 58 from the red flag in CIELAB. */
+    --bg:#f8f4f5; --card:#fffdfe; --ink:#2b2530; --muted:#726870;
+    --accent:#6b3f6e; --accent-soft:#f1e8f2; --accent-ink:#4a2b4f;
+    --line:#eae0e5;
     /* Severity ramp for the side effect tab. Monotonic by design:
        green, amber, burnt orange, red. A red flag renders as a filled
        block with white text, never as one more chip. */
-    --sev-mild:#15803d;  --sev-mild-soft:#e3efe0;
-    --sev-mod:#b45309;   --sev-mod-soft:#fdf1cd;
-    --sev-high:#c2410c;  --sev-high-soft:#fde6da;
-    --sev-flag:#991b1b;  --sev-flag-soft:#fce3e3;
+    --sev-mild:#15803d;  --sev-mild-soft:#e6efe3;
+    --sev-mod:#b45309;   --sev-mod-soft:#fdf2cf;
+    --sev-high:#c2410c;  --sev-high-soft:#fde7dc;
+    --sev-flag:#991b1b;  --sev-flag-soft:#fce4e4;
     /* Legacy aliases so the ported RheumPad components keep working. */
-    --tender:#b45309; --tender-soft:#fdf1cd;
-    --swollen:#116b5e; --swollen-soft:#dcedea;
-    --both:#991b1b; --both-soft:#fce3e3;
-    --ok:#15803d; --ok-soft:#e3efe0; --radius:12px;
-    --shadow:0 1px 3px rgba(20,40,45,.08), 0 4px 14px rgba(20,40,45,.05);
+    --tender:#b45309; --tender-soft:#fdf2cf;
+    --swollen:#6b3f6e; --swollen-soft:#f1e8f2;
+    --both:#991b1b; --both-soft:#fce4e4;
+    --ok:#15803d; --ok-soft:#e6efe3; --radius:12px;
+    --shadow:0 1px 3px rgba(45,32,45,.08), 0 4px 14px rgba(45,32,45,.05);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{font-size:15px;}
@@ -57,7 +59,7 @@
   nav.tabs{display:flex; gap:4px; padding:10px 20px 0; max-width:1180px; margin:0 auto; flex-wrap:wrap;}
   nav.tabs button{border:none; background:transparent; padding:9px 15px; border-radius:9px 9px 0 0;
     font-size:.92rem; color:var(--muted); border-bottom:2.5px solid transparent;}
-  nav.tabs button:hover{color:var(--ink); background:#e3e9e9;}
+  nav.tabs button:hover{color:var(--ink); background:#efe6ea;}
   nav.tabs button.active{color:var(--accent-ink); border-bottom-color:var(--accent); font-weight:600; background:#fff;}
 
   #favbar{max-width:1180px; margin:0 auto; padding:10px 20px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
@@ -85,7 +87,7 @@
   .card .cat{font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
   .card p.preview{font-size:.8rem; color:var(--muted); margin-top:6px; display:-webkit-box;
     -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
-  .card .star{position:absolute; top:10px; right:12px; font-size:1rem; color:#c3cdcd; background:none; border:none; padding:2px;}
+  .card .star{position:absolute; top:10px; right:12px; font-size:1rem; color:#d3c7ce; background:none; border:none; padding:2px;}
   .card .star.faved{color:#f59e0b;}
   .card .star:hover{color:#f59e0b;}
   .catrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
@@ -100,7 +102,7 @@
     box-shadow:0 10px 40px rgba(30,36,50,.25);}
   #modal h3{font-size:1.05rem; margin-bottom:2px;}
   #modal .cat{font-size:.75rem; color:var(--muted); margin-bottom:12px;}
-  .filled{background:#f6f9f8; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  .filled{background:#fbf7f9; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
     font-size:.92rem; white-space:pre-wrap; margin:10px 0; line-height:1.9;}
   .filled input[type=text]{border:none; border-bottom:1.5px solid var(--accent); background:var(--accent-soft);
     border-radius:4px 4px 0 0; padding:2px 7px; min-width:70px; outline:none;}
@@ -147,7 +149,7 @@
   @media(max-width:700px){.pc-grid{grid-template-columns:1fr;}}
   .pc-field label{font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:block; margin-bottom:4px;}
   .pc-field input[type=text],.pc-field select,.pc-field textarea{width:100%; border:1px solid var(--line);
-    border-radius:8px; padding:7px 10px; outline:none; background:#f6f9f8;}
+    border-radius:8px; padding:7px 10px; outline:none; background:#fbf7f9;}
   .pc-field textarea{min-height:56px; resize:vertical;}
   .pc-field input:focus,.pc-field textarea:focus,.pc-field select:focus{border-color:var(--accent);}
   .pc-chips{display:flex; gap:6px; flex-wrap:wrap;}

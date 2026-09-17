@@ -94,11 +94,11 @@ const css = await page.evaluate(() => {
   };
 });
 checks.cssVarsSet   = css.unset.length === 0;
-checks.cssAccent    = css.accent === '#116b5e';
-checks.cssBodyPaint = css.bodyBg === 'rgb(238, 242, 242)';
+checks.cssAccent    = css.accent === '#6b3f6e';
+checks.cssBodyPaint = css.bodyBg === 'rgb(248, 244, 245)';
 checks.cssOneSheet  = css.styleTags === 1;
 if (css.unset.length) console.log('  UNSET custom properties:', css.unset.join(', '));
-if (css.bodyBg !== 'rgb(238, 242, 242)') console.log('  body background is', css.bodyBg, '- expected the cool surface');
+if (css.bodyBg !== 'rgb(238, 242, 242)') console.log('  body background is', css.bodyBg, '- expected the warm neutral surface');
 
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
