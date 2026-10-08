@@ -245,6 +245,61 @@ checks.prRxEsPrints = await page.evaluate(() => {
   return !/(sets? of|times a week|repetitions|Soreness|feels easy|dumbbell|push-ups|minutes\b)/i.test(all);
 });
 
+// --- tab 7 Educate ---
+await page.click('nav.tabs button[data-tab="educate"]');
+checks.eduCards = (await page.$$('#instr-grid .card')).length === 8;
+// every sheet is bilingual, and the Spanish is a real translation
+checks.eduBilingual = await page.evaluate(() =>
+  DATA.instructions.length === 8 &&
+  DATA.instructions.every(i => i.body && i.bodyEs && i.bodyEs !== i.body
+    && i.bodyEs.length > i.body.length * 0.6 && i.cat));
+checks.eduEsBadge = (await page.$$('#instr-grid .esbadge')).length === 8;
+// the required eight topics are all present
+checks.eduTopics = await page.evaluate(() => {
+  const want = ['inject','missed','nausea','hydration','steps','muscle','stopping','call'];
+  const have = DATA.instructions.map(i => i.id.replace('h-',''));
+  return want.every(w => have.includes(w));
+});
+// opening a sheet, switching to Spanish, and printing carries Spanish through
+await page.click('#instr-grid .card >> nth=0');
+checks.eduLangToggle = (await page.$$('#modal .langtoggle button')).length === 2;
+const printed = await page.evaluate(() => {
+  const out = []; const orig = window.print; let title = '', clinic = '';
+  window.print = () => { title = document.getElementById('pr-title').textContent;
+                         clinic = document.getElementById('pr-clinic').textContent;
+                         out.push(document.getElementById('pr-body').textContent); };
+  document.querySelectorAll('#modal .langtoggle button')[1].click();   // Español
+  document.querySelectorAll('#modal .modal-actions button')[0].click(); // Print
+  window.print = orig;
+  return { body: out[0] || '', title, clinic };
+});
+checks.eduEsPrints = /LLÁMENOS|CÓMO|QUÉ/.test(printed.body) && !/CALL US IF|WHAT IS NORMAL/.test(printed.body);
+await page.click('#modal .modal-actions button >> nth=-1');
+// practice name reaches the printed sheet
+await page.click('nav.tabs button[data-tab="settings"]');
+await page.fill('#set-clinic', 'Valley Metabolic Health');
+await page.click('nav.tabs button[data-tab="educate"]');
+checks.eduClinicBar = (await page.innerText('#edu-clinic')).includes('Valley Metabolic Health');
+const withClinic = await page.evaluate(() => {
+  let clinic = ''; const orig = window.print;
+  window.print = () => { clinic = document.getElementById('pr-clinic').textContent; };
+  App.printSheet('x', 'y', 'en'); window.print = orig; return clinic;
+});
+checks.eduClinicPrints = withClinic === 'Valley Metabolic Health';
+// packet builder lists all eight and prints one page each
+await page.click('button:has-text("Build a handout packet")');
+checks.eduPacket = (await page.$$('#pk-list .chip')).length === 8;
+const pages = await page.evaluate(() => {
+  const orig = window.print; let n = 0;
+  window.print = () => { n = document.querySelectorAll('#printpacket .pk').length; };
+  Packet.sel = DATA.instructions.map(i => i.id); Packet.print();
+  window.print = orig; return n;
+});
+checks.eduPacketPages = pages === 8;
+await page.evaluate(() => { Packet.sel = []; App.closeModal(); });
+// a stored library from an older build still receives the new content
+checks.eduSeeds = await page.evaluate(() => DEFAULT_DATA.version >= 2);
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);

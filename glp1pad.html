@@ -612,10 +612,12 @@
 
   <section class="tab" id="tab-educate">
     <p class="tab-intro">Bilingual printable sheets. Tap to fill and copy, or build a packet and print the whole set as one job with your practice name on top.</p>
+    <div id="edu-clinic"></div>
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
       <button class="btn primary" onclick="Packet.open()">Build a handout packet</button>
     </div>
     <div class="cardgrid" id="instr-grid"></div>
+    <p class="modfoot">Every sheet exists in English and Spanish. Open one, switch language in the modal, fill any blanks, then print. The packet builder prints several at once as one job, one sheet per page, each with your practice name on top. Two sheets carry blanks for values that differ by drug, because this build ships no dose figures it could not verify against a label.</p>
   </section>
 
   <section class="tab" id="tab-document">
@@ -745,7 +747,7 @@
 // Blank syntax: {label} = fill-in box · {label:opt1|opt2} = dropdown · *** = generic blank
 // The shell ships the collections empty. Each tab commit fills its own.
 const DEFAULT_DATA = {
-  version: 1,
+  version: 2,
   clinic: "",
   sig: "",
   emr: "generic",
@@ -821,7 +823,572 @@ Stopping plan as discussed: {stopplan}. Monitoring through the transition: {mon}
 `A significant, separately identifiable evaluation and management service was performed on the same date as {other:the preventive visit|the procedure performed today|the other reported service}. The work documented for the E/M service stands on its own: a separate history, a separate examination as documented, and separate medical decision making addressing {problem}. No part of the documentation supporting the E/M service is used to support the other service reported today.`}
 
   ],
-  instructions: [],
+  instructions: [
+
+  {id:"h-inject", name:"How to give your injection", cat:"Getting started", body:
+`HOW TO GIVE YOUR INJECTION
+
+BEFORE YOU START
+- Pick one day of the week and keep it. Write it somewhere you will see it.
+- Take the pen out of the refrigerator a few minutes early. A cold injection stings more.
+- Wash your hands.
+
+WHERE TO INJECT
+- Your belly, at least two inches away from your belly button.
+- The front of your thigh.
+- The back of your upper arm, if someone else is giving it.
+- Move to a different spot every week. Using the same spot over and over makes a lump under the skin, and the medicine does not absorb well from a lump.
+
+HOW TO DO IT
+1. Check the liquid. It should be clear. If it looks cloudy or has specks in it, do not use it. Call us.
+2. Attach a new needle. Use a new one every single time.
+3. Set the dose. Check the number in the window twice.
+4. Clean the skin with alcohol and let it dry.
+5. Push the needle straight in, all the way.
+6. Press the button and hold it. Keep holding and count slowly to {count:6|10}. Let go too early and part of your dose stays in the pen.
+7. Pull the needle out. A small drop of blood or liquid is normal.
+8. Take the needle off and put it in a sharps container. Never put a loose needle in the trash.
+
+STORING IT
+- Keep the pen in the refrigerator before you start using it. Do not freeze it. If it freezes, throw it away.
+- Once you start a pen, follow the storage instructions that came with it: {storage}.
+- Keep it out of direct sunlight.
+
+WHAT IS NORMAL
+- A little redness or itching where you injected. It goes away.
+- A small bruise.
+
+CALL US IF
+- The injection site gets hot, swollen, and painful, and it is getting worse instead of better.
+- You get a rash all over your body, or your face or throat swells, or you have trouble breathing. That is an emergency. Call 911.`, bodyEs:
+`CÓMO PONERSE LA INYECCIÓN
+
+ANTES DE EMPEZAR
+- Escoja un día de la semana y manténgalo. Escríbalo donde lo vea.
+- Saque la pluma del refrigerador unos minutos antes. Fría, la inyección arde más.
+- Lávese las manos.
+
+DÓNDE INYECTARSE
+- En la barriga, al menos dos pulgadas lejos del ombligo.
+- En la parte de adelante del muslo.
+- En la parte de atrás del brazo, si otra persona se la pone.
+- Cambie de lugar cada semana. Usar siempre el mismo punto forma una bolita debajo de la piel, y de ahí el medicamento no se absorbe bien.
+
+CÓMO HACERLO
+1. Mire el líquido. Debe estar transparente. Si se ve turbio o tiene partículas, no lo use. Llámenos.
+2. Ponga una aguja nueva. Una nueva cada vez, sin excepción.
+3. Marque la dosis. Revise el número en la ventanita dos veces.
+4. Limpie la piel con alcohol y deje que se seque.
+5. Meta la aguja derecha, hasta el fondo.
+6. Apriete el botón y no lo suelte. Cuente despacio hasta {cuenta:6|10}. Si suelta antes, parte de su dosis se queda en la pluma.
+7. Saque la aguja. Es normal que salga una gotita de sangre o de líquido.
+8. Quite la aguja y póngala en un recipiente para objetos punzantes. Nunca tire una aguja suelta a la basura.
+
+CÓMO GUARDARLA
+- Guarde la pluma en el refrigerador antes de empezarla. No la congele. Si se congela, deséchela.
+- Una vez empezada, siga las instrucciones que vinieron con ella: {guardar}.
+- Manténgala fuera del sol directo.
+
+QUÉ ES NORMAL
+- Un poco de rojo o comezón donde se inyectó. Se quita.
+- Un moretón pequeño.
+
+LLÁMENOS SI
+- El lugar de la inyección se pone caliente, hinchado y doloroso, y empeora en vez de mejorar.
+- Le sale un sarpullido por todo el cuerpo, o se le hincha la cara o la garganta, o le cuesta respirar. Eso es una emergencia. Llame al 911.`},
+
+  {id:"h-missed", name:"If you miss a dose", cat:"Getting started", body:
+`IF YOU MISS A DOSE
+
+The rule is different for each of these medicines. This is the rule for yours. Your clinician filled it in.
+
+YOUR MEDICINE
+{medicine}
+
+IF YOU REMEMBER WITHIN {window}
+Take it as soon as you remember. Then go back to your usual day next week.
+
+IF MORE TIME HAS PASSED THAN THAT
+Skip the dose you missed. Take your next one on your usual day. Do not take two doses close together to catch up.
+
+NEVER DOUBLE UP
+Two doses close together will not help you catch up. It will make you feel sick, sometimes badly. One missed dose does not undo your progress.
+
+IF YOU WANT TO CHANGE YOUR INJECTION DAY
+You can, as long as there are at least {gap:2 days|48 hours} between one dose and the next. Pick the new day and stay on it.
+
+IF YOU HAVE MISSED SEVERAL IN A ROW
+Call us before you restart. After a longer gap you may need to go back to a lower dose and work up again, because your stomach loses its tolerance. That is a conversation to have with us, not a decision to make alone.
+
+WRITE IT DOWN
+The most common reason people miss a dose is losing track of which day it was. Put it in your phone as a repeating weekly reminder, today, before you forget.`, bodyEs:
+`SI SE LE OLVIDA UNA DOSIS
+
+La regla es distinta para cada uno de estos medicamentos. Esta es la de usted. Su médico la escribió aquí.
+
+SU MEDICAMENTO
+{medicamento}
+
+SI SE ACUERDA DENTRO DE {ventana}
+Póngasela en cuanto se acuerde. Después siga con su día de siempre la próxima semana.
+
+SI YA PASÓ MÁS TIEMPO
+Sáltese la dosis que se le pasó. Póngase la siguiente en su día de siempre. No se ponga dos dosis seguidas para recuperarla.
+
+NUNCA SE PONGA DOS JUNTAS
+Dos dosis muy seguidas no recuperan nada. Lo que hacen es ponerlo mal del estómago, a veces bastante mal. Una dosis que se pasó no borra su progreso.
+
+SI QUIERE CAMBIAR SU DÍA DE INYECCIÓN
+Puede hacerlo, siempre que pasen al menos {espacio:2 días|48 horas} entre una dosis y la otra. Escoja el día nuevo y quédese con ese.
+
+SI SE LE PASARON VARIAS SEGUIDAS
+Llámenos antes de volver a empezar. Después de una pausa larga puede que tenga que regresar a una dosis más baja y subir otra vez, porque el estómago pierde la tolerancia. Eso se decide con nosotros, no solo.
+
+ANÓTELO
+La razón más común por la que se olvida una dosis es perder la cuenta del día. Póngalo en su teléfono como recordatorio semanal, hoy, antes de que se le olvide.`},
+
+  {id:"h-nausea", name:"Eating when you feel sick", cat:"Side effects", body:
+`EATING WHEN YOU FEEL SICK
+
+Feeling queasy is the most common side effect of this medicine. It is usually worst in the first few days after a dose increase, and it usually settles while you stay on the same dose. Here is how to get through it.
+
+CHANGE HOW YOU EAT, NOT JUST WHAT
+- Eat small amounts more often instead of three big meals.
+- Stop at the first moment you feel full. Not pleasantly full. The very first sign. This medicine makes that signal arrive much earlier than you are used to.
+- Eat slowly. Put the fork down between bites.
+- Do not lie down right after eating.
+
+WHAT TENDS TO GO DOWN EASILY
+- Plain crackers, toast, rice, potatoes
+- Chicken, eggs, yogurt, cottage cheese
+- Clear soup and broth
+- Cold food often sits better than hot food, and it smells less
+
+WHAT TENDS TO MAKE IT WORSE
+- Fried and greasy food. This is the big one.
+- Very sweet food and drinks
+- Large portions of anything
+- Strong smells while cooking
+
+DRINKING
+- Sip through the day instead of drinking a lot at once.
+- Try not to drink much right at mealtime. Liquid takes up room you need for food.
+- Cold water, ice chips, or ginger tea.
+
+KEEP THE PROTEIN GOING
+Even on a bad day, try to get some protein in. Yogurt, eggs, a protein shake. Losing weight is the point; losing muscle is not, and protein is what protects it.
+
+CALL US IF
+- You cannot keep liquids down for a whole day.
+- You are vomiting again and again.
+- You have bad stomach pain that will not let up, especially if it goes through to your back.
+- You feel dizzy when you stand, or you are not urinating much.
+
+You do not have to suffer through it quietly. There are things we can do, including slowing down how fast your dose goes up. Tell us early and we have more options.`, bodyEs:
+`CÓMO COMER CUANDO SE SIENTE MAL DEL ESTÓMAGO
+
+Las náuseas son el efecto secundario más común de este medicamento. Casi siempre son peores en los primeros días después de subir la dosis, y casi siempre se calman si se queda en la misma dosis. Así se pasa mejor.
+
+CAMBIE CÓMO COME, NO SOLO QUÉ COME
+- Coma cantidades pequeñas más seguido, en lugar de tres comidas grandes.
+- Pare apenas sienta el primer indicio de estar lleno. No lleno a gusto. El primer indicio. Este medicamento hace que esa señal llegue mucho antes de lo que usted está acostumbrado.
+- Coma despacio. Deje el tenedor entre bocado y bocado.
+- No se acueste justo después de comer.
+
+LO QUE SUELE CAER BIEN
+- Galletas saladas, pan tostado, arroz, papa
+- Pollo, huevo, yogur, requesón
+- Caldo y sopa clara
+- La comida fría suele caer mejor que la caliente, y huele menos
+
+LO QUE SUELE EMPEORARLO
+- La comida frita y grasosa. Esta es la principal.
+- La comida y las bebidas muy dulces
+- Las porciones grandes de cualquier cosa
+- Los olores fuertes al cocinar
+
+PARA TOMAR
+- Tome sorbos durante todo el día en lugar de mucho de una vez.
+- Trate de no tomar mucho justo a la hora de comer. El líquido ocupa el espacio que necesita para la comida.
+- Agua fría, hielitos o té de jengibre.
+
+NO DEJE LA PROTEÍNA
+Aun en un día malo, trate de comer algo de proteína. Yogur, huevo, un licuado de proteína. Bajar de peso es la meta; perder músculo no lo es, y la proteína es lo que lo protege.
+
+LLÁMENOS SI
+- No puede retener líquidos en todo un día.
+- Está vomitando una y otra vez.
+- Tiene un dolor fuerte de estómago que no se le quita, sobre todo si le pega hasta la espalda.
+- Se marea al pararse, o casi no está orinando.
+
+No tiene que aguantarse en silencio. Hay cosas que podemos hacer, incluso ir más despacio al subir la dosis. Avísenos temprano y tenemos más opciones.`},
+
+  {id:"h-hydration", name:"Drinking enough", cat:"Side effects", body:
+`DRINKING ENOUGH
+
+This is the side effect nobody warns you about. You are eating less, and a lot of the water you used to get came from food. Add in any vomiting or loose stools and you can get dry quickly without noticing.
+
+Getting dry is also how this medicine can hurt your kidneys. Not because of the medicine itself, but because of what happens when you are low on fluid for days.
+
+HOW MUCH
+Aim for {target:6 to 8 cups|8 cups|2 liters} a day unless we have told you to limit fluids. Spread it across the whole day.
+
+HOW TO ACTUALLY DO IT
+- Keep a bottle where you sit. Out of sight means forgotten.
+- Drink a glass every time you take a medication, brush your teeth, or walk into the kitchen. Attach it to something you already do.
+- Set a reminder on your phone for mid-morning and mid-afternoon, the two times people forget.
+- Drink between meals rather than with them, so liquid is not competing for room.
+
+WHAT COUNTS
+Water, milk, broth, unsweetened tea or coffee, sugar-free drinks. Food with a lot of water in it counts too: soup, melon, cucumber, yogurt.
+
+WHAT DOES NOT HELP
+Sugary drinks and juice. Alcohol, which dries you out and sits badly on a slow stomach.
+
+SIGNS YOU ARE GETTING DRY
+- Dark yellow urine, or not going as often as usual
+- Dry mouth, headache
+- Feeling dizzy or seeing spots when you stand up
+- Feeling unusually tired or muddled
+
+IF YOU GET SICK
+On a day with vomiting or diarrhea, fluid matters more, not less. Small sips, constantly. If you cannot keep anything down for a day, call us. Tell us if you take a water pill or a blood pressure medicine, because those may need to be held while you are dry.
+
+CALL US IF
+- You cannot keep fluids down for a whole day.
+- You are very dizzy standing up.
+- You have hardly urinated all day.
+- You feel confused or very weak.`, bodyEs:
+`TOMAR SUFICIENTE LÍQUIDO
+
+Este es el efecto secundario del que nadie le avisa. Está comiendo menos, y mucha del agua que antes tomaba venía de la comida. Si además vomita o tiene diarrea, se puede deshidratar rápido sin darse cuenta.
+
+Deshidratarse es también la forma en que este medicamento puede dañarle los riñones. No por el medicamento en sí, sino por lo que pasa cuando le falta líquido varios días.
+
+CUÁNTO
+Trate de tomar {meta:6 a 8 vasos|8 vasos|2 litros} al día, salvo que le hayamos dicho que limite los líquidos. Repártalos durante todo el día.
+
+CÓMO LOGRARLO DE VERDAD
+- Tenga una botella donde usted se sienta. Lo que no se ve, se olvida.
+- Tome un vaso cada vez que tome una pastilla, se lave los dientes o entre a la cocina. Péguelo a algo que ya hace.
+- Ponga una alarma en el teléfono a media mañana y a media tarde, que son las dos horas en que se olvida.
+- Tome entre comidas y no durante, para que el líquido no le quite espacio.
+
+QUÉ CUENTA
+Agua, leche, caldo, té o café sin azúcar, bebidas sin azúcar. La comida con mucha agua también cuenta: sopa, melón, pepino, yogur.
+
+QUÉ NO AYUDA
+Las bebidas azucaradas y el jugo. El alcohol, que lo deshidrata y cae mal en un estómago lento.
+
+SEÑALES DE QUE LE FALTA LÍQUIDO
+- Orina amarilla oscura, o ir al baño menos seguido que de costumbre
+- Boca seca, dolor de cabeza
+- Marearse o ver lucecitas al pararse
+- Sentirse muy cansado o confundido
+
+SI SE ENFERMA
+En un día con vómito o diarrea, el líquido importa más, no menos. Sorbos pequeños, todo el tiempo. Si no puede retener nada en un día, llámenos. Dígannos si toma pastillas para orinar o para la presión, porque puede que haya que suspenderlas mientras está deshidratado.
+
+LLÁMENOS SI
+- No puede retener líquidos en todo un día.
+- Se marea mucho al pararse.
+- Casi no ha orinado en todo el día.
+- Se siente confundido o muy débil.`},
+  {id:"h-steps", name:"What to expect at each step", cat:"Getting started", body:
+`WHAT TO EXPECT AS YOUR DOSE GOES UP
+
+This medicine is started low and increased in steps. The steps are not a race. They exist to let your stomach catch up, and your clinician decides when each one happens.
+
+YOUR SCHEDULE
+Starting dose: {start}
+Your clinician will increase it no sooner than: {interval}
+The next change we have planned: {next}
+
+WHAT THE FIRST FEW WEEKS FEEL LIKE
+- You may feel full faster than usual. That is the medicine working, not a problem.
+- Some queasiness, especially in the first days after a dose goes up.
+- Burping, constipation, or looser stools.
+- Food may stop sounding appealing. Keep eating anyway, and keep the protein in.
+
+AFTER EACH INCREASE
+Expect a few days where you feel the same things again, usually milder than the first time. They settle while you stay at that dose. That settling is the reason we wait before going up again.
+
+WHAT YOU SHOULD NOT EXPECT
+- Fast results in the first weeks. This is slow on purpose.
+- To feel nothing at all. Most people notice something.
+- To keep going up forever. There is a dose where you stop, and it is not the same for everyone.
+
+IF A STEP IS TOO HARD
+Tell us. We can stay where we are longer, or step back down. A lower dose you can actually take beats a higher one you quit. Staying put for a while is a normal part of this, not a setback.
+
+THE TWO HABITS THAT MATTER FROM DAY ONE
+Protein at every meal, and strength exercise twice a week. Weight comes off as fat and muscle together, and these two are what keep the muscle. Starting them now is much easier than starting them in six months.
+
+CALL US IF
+- You cannot keep liquids down.
+- You have severe stomach pain that does not let up.
+- You are losing weight much faster than we discussed.`, bodyEs:
+`QUÉ ESPERAR MIENTRAS SUBE LA DOSIS
+
+Este medicamento se empieza bajo y se sube por pasos. Los pasos no son una carrera. Existen para que su estómago se adapte, y su médico decide cuándo toca cada uno.
+
+SU PLAN
+Dosis inicial: {inicio}
+Su médico la subirá no antes de: {intervalo}
+El siguiente cambio que tenemos planeado: {siguiente}
+
+CÓMO SE SIENTEN LAS PRIMERAS SEMANAS
+- Puede llenarse más rápido de lo normal. Eso es el medicamento funcionando, no un problema.
+- Algo de náusea, sobre todo en los primeros días después de subir la dosis.
+- Eructos, estreñimiento o heces más sueltas.
+- Puede que la comida deje de antojársele. Coma de todos modos, y no deje la proteína.
+
+DESPUÉS DE CADA AUMENTO
+Espere unos días en que vuelva a sentir lo mismo, casi siempre más leve que la primera vez. Se calma si se queda en esa dosis. Esa calma es la razón por la que esperamos antes de subir otra vez.
+
+LO QUE NO DEBE ESPERAR
+- Resultados rápidos las primeras semanas. Esto es lento a propósito.
+- No sentir absolutamente nada. Casi todos notan algo.
+- Seguir subiendo para siempre. Hay una dosis donde uno se queda, y no es la misma para todos.
+
+SI UN PASO SE LE HACE MUY DIFÍCIL
+Avísenos. Podemos quedarnos más tiempo donde estamos, o bajar un paso. Una dosis más baja que sí se puede tomar vale más que una alta que se abandona. Quedarse un tiempo en el mismo escalón es parte normal de esto, no un retroceso.
+
+LOS DOS HÁBITOS QUE IMPORTAN DESDE EL PRIMER DÍA
+Proteína en cada comida y ejercicio de fuerza dos veces por semana. El peso se pierde en grasa y en músculo a la vez, y estos dos son los que conservan el músculo. Empezarlos ahora es mucho más fácil que empezarlos en seis meses.
+
+LLÁMENOS SI
+- No puede retener líquidos.
+- Tiene dolor fuerte de estómago que no se le quita.
+- Está bajando de peso mucho más rápido de lo que hablamos.`},
+
+  {id:"h-muscle", name:"Protecting your muscle", cat:"Day to day", body:
+`PROTECTING YOUR MUSCLE
+
+Here is something most people are not told. When you lose weight, you do not only lose fat. You lose some muscle along with it. That happens with any weight loss, including dieting and surgery, not just with this medicine.
+
+Muscle is not about looking a certain way. It is what gets you out of a chair, up the stairs, and back on your feet if you trip. It is also where your body puts sugar to work. Losing it quietly is the part of weight loss that costs you later.
+
+Two things protect it. Both are simple and neither is optional.
+
+ONE. EAT ENOUGH PROTEIN
+Your target: {protein} grams at each meal, {meals:3|4|5} times a day.
+
+- Eat the protein on your plate first, before anything else. When you fill up early, whatever you ate first is what you actually got.
+- Breakfast is where protein usually goes missing. Eggs, Greek yogurt, cottage cheese, a shake.
+- Keep something easy on hand for the days you cannot face cooking. A tin of tuna, a protein shake, boiled eggs.
+- Your appetite is smaller now. That is the whole difficulty. Protein first solves most of it.
+
+TWO. STRENGTH EXERCISE TWICE A WEEK
+Not walking. Walking is good for your heart and does almost nothing for muscle. You need to make your muscles work against something.
+
+- This can be your own body weight. Standing up from a chair counts. Wall push-ups count.
+- Twice a week, every week. Two short sessions that happen beat five that get planned.
+- When it starts feeling easy, make it slightly harder. A little more weight, or one more repetition.
+- You have a separate sheet with your exercises on it.
+
+HOW YOU WILL KNOW IT IS WORKING
+Not the scale. The scale cannot tell muscle from fat. Watch these instead:
+- Can you still get out of a low chair without using your arms?
+- Can you carry the groceries in one trip?
+- Do stairs feel the same as they did six months ago?
+
+If any of those are getting harder while your weight goes down, tell us. That is the signal that matters.
+
+CALL US IF
+- You feel weaker than you did, or your legs feel unsteady.
+- You have had a fall, or nearly fell.
+- You cannot get the protein in and do not know what to do about it.`, bodyEs:
+`CÓMO PROTEGER SU MÚSCULO
+
+Hay algo que a casi nadie le dicen. Cuando usted baja de peso, no solo pierde grasa. También pierde algo de músculo. Eso pasa con cualquier pérdida de peso, incluso con dieta o con cirugía, no solo con este medicamento.
+
+El músculo no se trata de verse de cierta manera. Es lo que lo levanta de una silla, lo sube las escaleras y lo sostiene si tropieza. También es donde su cuerpo usa el azúcar. Perderlo en silencio es la parte de bajar de peso que se cobra después.
+
+Dos cosas lo protegen. Las dos son sencillas y ninguna es opcional.
+
+UNO. COMA SUFICIENTE PROTEÍNA
+Su meta: {proteina} gramos en cada comida, {comidas:3|4|5} veces al día.
+
+- Coma primero la proteína del plato, antes que todo lo demás. Si se llena pronto, lo que comió primero es lo que de verdad le entró.
+- El desayuno es donde casi siempre falta la proteína. Huevo, yogur griego, requesón, un licuado.
+- Tenga algo fácil a la mano para los días en que no puede cocinar. Una lata de atún, un licuado de proteína, huevos cocidos.
+- Su apetito ahora es más chico. Esa es toda la dificultad. Comer la proteína primero resuelve casi todo.
+
+DOS. EJERCICIO DE FUERZA DOS VECES POR SEMANA
+No caminar. Caminar es bueno para el corazón y casi no hace nada por el músculo. Hay que hacer que el músculo trabaje contra algo.
+
+- Puede ser con su propio peso. Pararse de una silla cuenta. Las lagartijas contra la pared cuentan.
+- Dos veces por semana, todas las semanas. Dos sesiones cortas que sí se hacen valen más que cinco que solo se planean.
+- Cuando empiece a sentirse fácil, póngalo un poco más difícil. Un poco más de peso, o una repetición más.
+- Tiene una hoja aparte con sus ejercicios.
+
+CÓMO SABER SI ESTÁ FUNCIONANDO
+No por la báscula. La báscula no distingue músculo de grasa. Fíjese mejor en esto:
+- ¿Todavía puede levantarse de una silla baja sin usar los brazos?
+- ¿Puede entrar el mandado en un solo viaje?
+- ¿Las escaleras se sienten igual que hace seis meses?
+
+Si algo de eso se está poniendo más difícil mientras baja de peso, avísenos. Esa es la señal que importa.
+
+LLÁMENOS SI
+- Se siente más débil que antes, o siente las piernas inseguras.
+- Se cayó, o casi se cae.
+- No logra comer la proteína y no sabe qué hacer.`},
+
+  {id:"h-stopping", name:"What happens when you stop", cat:"Stopping", body:
+`WHAT HAPPENS WHEN YOU STOP
+
+You may stop this medicine one day. Because you choose to, because it stops being covered, because of a supply problem, or because you and your clinician decide together. Here is the honest version of what happens, so it does not catch you off guard.
+
+YOUR APPETITE COMES BACK
+Usually within a few weeks. The fullness you have gotten used to fades, and hunger returns to about where it was. This is the medicine wearing off. It is not willpower leaving you.
+
+WEIGHT USUALLY COMES BACK
+Most people regain a good part of what they lost within about a year of stopping. Blood pressure, cholesterol and blood sugar tend to drift back too.
+
+Read that again, and then read this: it is not your fault. This is a treatment for a long-term condition. When you stop a blood pressure pill, blood pressure goes back up, and nobody calls that a personal failure. This is the same. Regained weight is not proof that you failed, and it is not proof that the medicine failed.
+
+WHAT STAYS YOURS
+The habits do. Everything you built while you were on it belongs to you and keeps working:
+- The protein. It matters more now, not less, because nothing is suppressing your appetite for you.
+- The strength exercise. This is the one that decides how much muscle you keep. Do not let it go.
+- Knowing what a smaller portion feels like.
+
+WHAT TO WATCH
+- If you have diabetes, your blood sugar needs closer attention now. We will tell you how often to check and when to come in.
+- If you take blood pressure or diabetes medicines, the doses may need to change as your weight changes. Do not adjust them yourself.
+- Weigh yourself on the same schedule you did before. Information, not judgment.
+
+IF YOU STOPPED BECAUSE OF COST
+Tell us. There are savings programs, and there are appeals we can file. A gap forced by price is not the same as a decision to stop treatment, and it is worth a phone call before you give up on it.
+
+YOU CAN COME BACK
+Restarting is always an option and you do not owe anyone an explanation. If you have been off it for a while we may restart lower and work up again, because your stomach loses its tolerance. Just call.
+
+CALL US IF
+- Your blood sugars climb.
+- You feel dizzy, or your blood pressure readings change a lot.
+- You want to restart.`, bodyEs:
+`QUÉ PASA CUANDO SE SUSPENDE EL MEDICAMENTO
+
+Puede que algún día deje este medicamento. Porque usted lo decide, porque el seguro deja de cubrirlo, porque hay un problema de abasto, o porque usted y su médico lo deciden juntos. Esta es la versión honesta de lo que pasa, para que no lo agarre desprevenido.
+
+EL APETITO REGRESA
+Normalmente en unas semanas. La sensación de llenarse pronto, a la que ya se acostumbró, se va, y el hambre vuelve más o menos a donde estaba. Eso es el medicamento dejando de hacer efecto. No es que a usted se le haya acabado la fuerza de voluntad.
+
+EL PESO NORMALMENTE REGRESA
+La mayoría de las personas recupera buena parte de lo que bajó dentro del primer año de haberlo dejado. La presión, el colesterol y el azúcar también tienden a regresar.
+
+Lea eso otra vez, y ahora lea esto: no es culpa suya. Este es un tratamiento para una enfermedad de largo plazo. Cuando se deja una pastilla de la presión, la presión sube, y a nadie se le ocurre llamarle fracaso personal. Esto es igual. Recuperar peso no prueba que usted falló, ni prueba que el medicamento falló.
+
+LO QUE SIGUE SIENDO SUYO
+Los hábitos. Todo lo que construyó mientras lo tomaba le pertenece y sigue funcionando:
+- La proteína. Ahora importa más, no menos, porque ya nada le está quitando el apetito.
+- El ejercicio de fuerza. Este es el que decide cuánto músculo conserva. No lo suelte.
+- Saber cómo se siente una porción más chica.
+
+QUÉ VIGILAR
+- Si tiene diabetes, su azúcar necesita más atención ahora. Le diremos cada cuándo medirse y cuándo venir.
+- Si toma medicamentos para la presión o para la diabetes, las dosis pueden tener que cambiar conforme cambie su peso. No las ajuste por su cuenta.
+- Pésese con la misma frecuencia que antes. Es información, no un juicio.
+
+SI LO DEJÓ POR EL COSTO
+Dígannos. Hay programas de ayuda y hay apelaciones que podemos presentar. Una interrupción por el precio no es lo mismo que decidir dejar el tratamiento, y vale una llamada antes de darlo por perdido.
+
+PUEDE REGRESAR
+Volver a empezar siempre es una opción y no le debe explicaciones a nadie. Si lleva tiempo sin tomarlo, puede que lo reiniciemos más bajo y subamos otra vez, porque el estómago pierde la tolerancia. Solo llámenos.
+
+LLÁMENOS SI
+- Su azúcar sube.
+- Se siente mareado, o sus lecturas de presión cambian mucho.
+- Quiere volver a empezar.`},
+
+  {id:"h-call", name:"When to call us", cat:"Side effects", body:
+`WHEN TO CALL US
+
+Keep this one on the refrigerator.
+
+CALL 911 OR GO TO THE EMERGENCY ROOM
+- Severe stomach pain that will not let up, especially if it goes through to your back, and especially with vomiting. Do not wait this one out.
+- Swelling of your face, lips, tongue or throat. Trouble breathing or swallowing. A rash over your whole body.
+- Chest pain.
+- You cannot be woken easily, or you are very confused.
+
+CALL THE OFFICE TODAY
+- You cannot keep any liquids down for a whole day.
+- You are vomiting over and over.
+- You have hardly urinated all day, or you are very dizzy standing up.
+- Pain in your upper right belly, especially after eating, especially with fever or yellow skin or eyes.
+- Your blood sugar is running low: shaky, sweaty, confused, heart pounding. More likely if you also take insulin or a sulfonylurea.
+- A new change in your vision.
+- You had a fall.
+
+CALL US THIS WEEK
+- The nausea is not settling, or it is stopping you from eating.
+- Constipation you cannot fix at home.
+- You are losing weight faster than we talked about.
+- You are feeling weaker, or stairs are getting harder.
+- You missed several doses in a row and are not sure how to restart.
+- You cannot afford the medicine, or your coverage has changed.
+- You are pregnant, or you are thinking about becoming pregnant.
+
+BEFORE ANY PROCEDURE WITH SEDATION OR ANESTHESIA
+Tell the surgeon, the anesthesiologist, and whoever does your scope that you take this medicine, and tell them well before the day. It slows how fast your stomach empties, which matters for sedation, and they may ask you to change how you prepare or when you take your last dose.
+
+THINGS THAT ARE USUALLY FINE
+- Queasiness in the first days after a dose increase, settling as the week goes on
+- Burping, or a sulfur taste
+- A small bruise or some itching where you injected
+- Feeling full much sooner than you used to
+
+OUR NUMBER
+{phone}
+
+After hours: {afterhours}`, bodyEs:
+`CUÁNDO LLAMARNOS
+
+Deje esta hoja pegada en el refrigerador.
+
+LLAME AL 911 O VAYA A EMERGENCIAS
+- Dolor fuerte de estómago que no se le quita, sobre todo si le pega hasta la espalda, y sobre todo con vómito. Este no se espera en casa.
+- Hinchazón de la cara, los labios, la lengua o la garganta. Dificultad para respirar o para tragar. Sarpullido por todo el cuerpo.
+- Dolor en el pecho.
+- No se puede despertar bien, o está muy confundido.
+
+LLAME AL CONSULTORIO HOY MISMO
+- No puede retener ningún líquido en todo un día.
+- Está vomitando una y otra vez.
+- Casi no ha orinado en todo el día, o se marea mucho al pararse.
+- Dolor arriba a la derecha de la barriga, sobre todo después de comer, sobre todo con fiebre o con la piel o los ojos amarillos.
+- Su azúcar está baja: temblor, sudor, confusión, el corazón acelerado. Es más probable si además usa insulina o una sulfonilurea.
+- Un cambio nuevo en su vista.
+- Se cayó.
+
+LLÁMENOS ESTA SEMANA
+- La náusea no se calma, o no lo deja comer.
+- Estreñimiento que no se arregla en casa.
+- Está bajando de peso más rápido de lo que hablamos.
+- Se siente más débil, o las escaleras se le hacen más difíciles.
+- Se le pasaron varias dosis seguidas y no sabe cómo volver a empezar.
+- No puede pagar el medicamento, o su cobertura cambió.
+- Está embarazada, o está pensando en embarazarse.
+
+ANTES DE CUALQUIER PROCEDIMIENTO CON SEDACIÓN O ANESTESIA
+Dígale al cirujano, al anestesiólogo y a quien le haga una endoscopia que usted toma este medicamento, y dígaselo con tiempo, no el mismo día. El medicamento hace que el estómago se vacíe más lento, y eso importa para la sedación. Puede que le cambien la preparación o cuándo ponerse la última dosis.
+
+COSAS QUE SUELEN SER NORMALES
+- Náusea los primeros días después de subir la dosis, que se calma durante la semana
+- Eructos, o un sabor a azufre
+- Un moretón pequeño o comezón donde se inyectó
+- Llenarse mucho antes de lo que se llenaba antes
+
+NUESTRO TELÉFONO
+{telefono}
+
+Fuera de horario: {fueradehorario}`}
+
+  ],
   // Every ICD-10 code below was checked against the FY2026 ICD-10-CM set and is
   // valid for HIPAA transactions. Parent codes that are NOT billable on their own
   // (E66.0, E66.81, E88.81, Z68.3) are deliberately absent: they get denied.
@@ -3215,8 +3782,30 @@ function renderSigPreview(){
   el.textContent = "Sincerely,\n\n" + sigBlock();
 }
 
+function renderEduClinic(){
+  const host = document.getElementById("edu-clinic");
+  if (!host) return;
+  host.innerHTML = "";
+  const set = (DATA.clinic || "").trim();
+  const bar = document.createElement("div");
+  bar.style.cssText = "margin-bottom:12px; padding:9px 14px; border-radius:10px; font-size:.85rem;" +
+    (set ? "background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-ink);"
+         : "background:var(--sev-mod-soft); border:1px solid var(--sev-mod); color:var(--sev-mod);");
+  if (set) {
+    bar.textContent = "Handouts print with: " + set;
+  } else {
+    bar.appendChild(document.createTextNode("No practice name set, so handouts print with a blank line where it belongs. "));
+    const b = document.createElement("button");
+    b.className = "btn small"; b.textContent = "Set it in Settings";
+    b.style.marginLeft = "6px";
+    b.onclick = ()=>App.showTab("settings");
+    bar.appendChild(b);
+  }
+  host.appendChild(bar);
+}
+
 function renderAll(){
-  renderPhrases(); renderInstructions(); Codes.render();
+  renderPhrases(); renderInstructions(); Codes.render(); renderEduClinic();
   renderFavbar(); ED.renderLists();
   const ci = document.getElementById("set-clinic");
   if (ci && document.activeElement !== ci) ci.value = DATA.clinic || "";
@@ -3252,7 +3841,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
       e.preventDefault(); Launcher.open(".");
     }
   });
-  document.getElementById("set-clinic").addEventListener("input", (e)=>{ DATA.clinic = e.target.value; saveState(); });
+  document.getElementById("set-clinic").addEventListener("input", (e)=>{
+    DATA.clinic = e.target.value; saveState(); renderEduClinic();
+  });
   const sigBox = document.getElementById("set-sig");
   if (sigBox) sigBox.addEventListener("input", (e)=>{ DATA.sig = e.target.value; saveState(); renderSigPreview(); });
   const emrSel = document.getElementById("set-emr");
