@@ -100,6 +100,53 @@ checks.cssOneSheet  = css.styleTags === 1;
 if (css.unset.length) console.log('  UNSET custom properties:', css.unset.join(', '));
 if (css.bodyBg !== 'rgb(238, 242, 242)') console.log('  body background is', css.bodyBg, '- expected the warm neutral surface');
 
+// --- tab 4 Coverage ---
+await page.click('nav.tabs button[data-tab="coverage"]');
+checks.covKinds   = (await page.$$('#cov-kind .chip')).length === 3;
+checks.covComorb  = (await page.$$('#cov-comorb .chip')).length >= 14;
+checks.covSavings = (await page.$$('#cov-savings .comp-section')).length === 5;
+checks.covCompound= (await page.innerText('#cov-compound')).includes('503A');
+// BMI arithmetic and the Z68 it maps to
+await page.fill('#cov-wt', '232'); await page.fill('#cov-ht', '65');
+const bmiNote = await page.innerText('#cov-bminote');
+checks.covBmi     = (await page.inputValue('#cov-bmi')) === '38.6' && bmiNote.includes('Z68.38');
+// the letter assembles from the fields
+await page.fill('#cov-drug', 'semaglutide');
+await page.fill('#cov-brand', 'Wegovy');
+await page.selectOption('#cov-ind', 'chronic weight management');
+await page.fill('#cov-a1c', '6.1');
+await page.click('#cov-comorb .chip >> nth=0');
+const trialInputs = await page.$$('#cov-trials input');
+await trialInputs[0].fill('metformin'); await trialInputs[1].fill('2000 mg daily');
+await trialInputs[2].fill('9 months');  await trialInputs[3].fill('inadequate response');
+await page.fill('#cov-icd-search', 'E66.813');
+await page.click('#cov-icd-results .chip >> nth=0');
+const letter = await page.innerText('#cov-out');
+checks.covLetter  = ['semaglutide (Wegovy)','chronic weight management','E66.813','metformin at 2000 mg daily for 9 months','Current BMI is 38.6','6.1 percent']
+                      .every(f => letter.includes(f));
+checks.covNoPHI   = letter.includes('Patient: ***') && letter.includes('Member ID: ***');
+// letter type switches shape, and the denial block only shows where it belongs
+checks.covDenialHidden = !(await page.isVisible('#cov-denialwrap'));
+await page.click('#cov-kind .chip >> nth=1');
+checks.covDenialShown  = await page.isVisible('#cov-denialwrap');
+checks.covAppeal  = (await page.innerText('#cov-out')).startsWith('RE: Appeal of denial');
+await page.click('#cov-kind .chip >> nth=2');
+const p2p = await page.innerText('#cov-out');
+checks.covP2P     = p2p.startsWith('PEER-TO-PEER PREP SHEET') && p2p.includes('OUTCOME');
+// no payer criteria are shipped anywhere in the file
+checks.covNoCriteria = await page.evaluate(() =>
+  !/\b(BMI (?:of )?(?:27|30|35|40)\s*(?:or (?:above|greater)|\+)|must have (?:failed|tried)|plan requires)/i
+    .test(JSON.stringify(COVER.SAVINGS) + COVER.COMORB.join(' ') + JSON.stringify(COVER.KINDS)));
+checks.covZ68Complete = await page.evaluate(() => {
+  const shipped = new Set();
+  (DATA.codes||[]).forEach(g => g.items.forEach(i => { if (/^Z68\./.test(i.code)) shipped.add(i.code); }));
+  // every code COVER.z68() can return has to be addable from the picker
+  const reachable = [];
+  for (let bmi = 20; bmi < 80; bmi += 0.5) reachable.push(COVER.z68(bmi));
+  return [...new Set(reachable)].every(c => shipped.has(c));
+});
+await page.click('#cov-kind .chip >> nth=0');
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);

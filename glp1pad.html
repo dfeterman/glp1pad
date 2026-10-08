@@ -360,8 +360,108 @@
   </section>
 
   <section class="tab" id="tab-coverage">
-    <p class="tab-intro">Prior authorization letters, appeals, an ICD-10 picker, and manufacturer savings links. Payer criteria stay editable text, because plans differ and guessing them helps nobody.</p>
-    <div id="coverage-body"></div>
+    <p class="tab-intro">Prior authorization letters, appeals, and a peer-to-peer sheet, built from fields you fill once. An ICD-10 picker feeds the letter. Payer criteria stay editable text, because plans differ and a letter that guesses a plan's rules is worse than one that quotes them.</p>
+
+    <div class="comp-section">
+      <h4><span>What are you writing</span></h4>
+      <div class="pc-chips" id="cov-kind"></div>
+      <p class="hint" id="cov-kindnote" style="margin:8px 0 0;"></p>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>Request</span></h4>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));">
+        <div class="pc-field"><label>Drug requested</label><input type="text" id="cov-drug" placeholder="e.g. semaglutide"></div>
+        <div class="pc-field"><label>Brand, if the plan asks for one</label><input type="text" id="cov-brand" placeholder="e.g. Wegovy"></div>
+        <div class="pc-field"><label>Requested dose and schedule</label><input type="text" id="cov-dose" placeholder="as you intend to prescribe it"></div>
+        <div class="pc-field"><label>Indication</label>
+          <select id="cov-ind">
+            <option value="">Choose</option>
+            <option>chronic weight management</option>
+            <option>type 2 diabetes</option>
+            <option>type 2 diabetes with established cardiovascular disease</option>
+            <option>obstructive sleep apnea with obesity</option>
+            <option>other, stated below</option>
+          </select></div>
+        <div class="pc-field"><label>Plan or payer name</label><input type="text" id="cov-payer" placeholder="e.g. Blue Cross of ***"></div>
+        <div class="pc-field"><label>Following this patient since</label><input type="text" id="cov-since" placeholder="e.g. March 2024"></div>
+      </div>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>Clinical facts</span><span class="guidetag">numbers only, no identifiers</span></h4>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">
+        <div class="pc-field"><label>Weight (lb)</label><input type="number" id="cov-wt" min="0" step="0.1" placeholder="e.g. 232"></div>
+        <div class="pc-field"><label>Height (in)</label><input type="number" id="cov-ht" min="0" step="0.25" placeholder="e.g. 65"></div>
+        <div class="pc-field"><label>BMI</label><input type="text" id="cov-bmi" placeholder="auto, or type it"></div>
+        <div class="pc-field"><label>Most recent A1c (%)</label><input type="number" id="cov-a1c" min="0" step="0.1" placeholder="e.g. 7.4"></div>
+        <div class="pc-field"><label>Lifestyle program, how long</label><input type="text" id="cov-lsdur" placeholder="e.g. 7 months"></div>
+        <div class="pc-field"><label>Lifestyle program, what it was</label><input type="text" id="cov-lswhat" placeholder="e.g. dietitian visits + logged activity"></div>
+      </div>
+      <p class="hint" id="cov-bminote" style="margin:9px 0 0;"></p>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>Comorbidities</span><span class="guidetag">tap all that apply</span></h4>
+      <div class="pc-chips" id="cov-comorb"></div>
+      <div class="pc-field" style="margin-top:10px;"><label>Anything else worth stating</label>
+        <input type="text" id="cov-comorb-other" placeholder="free text, added to the list"></div>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>Prior medication trials</span>
+        <button class="btn small" onclick="COVER.addTrial()">Add a trial</button></h4>
+      <p class="hint" style="margin:0 0 10px;">Drug, how long, at what dose, and why it ended. This is the section most denials turn on, so be specific about duration and outcome.</p>
+      <div id="cov-trials"></div>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>Diagnosis codes</span><span class="guidetag">verified against FY2026</span></h4>
+      <p class="hint" style="margin:0 0 9px;">Search and tap to add. The codes go into the letter in the order you add them. Tap a chosen code to remove it.</p>
+      <input type="text" id="cov-icd-search" placeholder="Search by code or description, e.g. obesity, E66, BMI 40, apnea"
+        style="width:100%; max-width:430px; border:1px solid var(--line); border-radius:8px; padding:8px 11px; outline:none; background:var(--card);">
+      <div class="pc-chips" id="cov-icd-results" style="margin-top:10px;"></div>
+      <div style="margin-top:12px;"><b style="font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">On this letter</b>
+        <div class="pc-chips" id="cov-icd-chosen" style="margin-top:6px;"></div></div>
+    </div>
+
+    <div class="comp-section" id="cov-denialwrap">
+      <h4><span>The denial</span></h4>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));">
+        <div class="pc-field"><label>Reference number on the denial</label><input type="text" id="cov-ref" placeholder="as printed on the letter"></div>
+        <div class="pc-field"><label>Date of the denial</label><input type="text" id="cov-dendate" placeholder="e.g. 12 September 2026"></div>
+      </div>
+      <div class="pc-field" style="margin-top:10px;"><label>Reason the plan gave, in their words</label>
+        <textarea id="cov-denreason" placeholder="Quote it rather than paraphrasing. An appeal that answers the stated reason beats one that argues in general."></textarea></div>
+      <div class="pc-field" style="margin-top:10px;"><label>Your response to that reason</label>
+        <textarea id="cov-denresp" placeholder="What in the record contradicts it, or what the plan missed."></textarea></div>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>The plan's own criteria</span><span class="guidetag">paste, do not guess</span></h4>
+      <p class="hint" style="margin:0 0 9px;">GLP-1 Pad ships no payer criteria. Coverage rules differ by plan, by employer group, and by year, and a letter citing invented criteria gets denied and costs you credibility on the next one. Open the plan's policy, copy the criteria that apply, and paste them here. The letter will quote them back and answer each one.</p>
+      <div class="pc-field"><label>Criteria from the plan's published policy</label>
+        <textarea id="cov-criteria" style="min-height:96px;" placeholder="Paste the plan's language here."></textarea></div>
+      <div class="pc-field" style="margin-top:10px;"><label>How this patient meets them, point by point</label>
+        <textarea id="cov-meets" style="min-height:76px;" placeholder="Answer each criterion in the same order."></textarea></div>
+    </div>
+
+    <div class="comp-section">
+      <h4><span>The letter</span>
+        <button class="btn small primary" onclick="COVER.copy()">Copy</button>
+        <button class="btn small" onclick="COVER.print()">Print</button>
+        <button class="btn small" onclick="COVER.reset()">Clear</button></h4>
+      <div id="cov-out" class="filled" style="margin:0;"></div>
+    </div>
+
+    <h2 class="sect">Manufacturer savings and supply</h2>
+    <p class="tab-intro">Where to send a patient whose plan says no, or whose copay lands somewhere they cannot reach. Programs and their terms change often, so check eligibility on the program's own page before you promise a price.</p>
+    <div id="cov-savings"></div>
+
+    <h2 class="sect">Compounded GLP-1s</h2>
+    <div id="cov-compound"></div>
+
+    <p class="modfoot">GLP-1 Pad ships no payer criteria and no coverage determinations. Everything payer-specific on this tab is a field you fill from the plan's own policy. Decision support only; the clinical and coverage judgment stays yours.</p>
   </section>
 
   <section class="tab" id="tab-monitor">
@@ -632,20 +732,33 @@ Stopping plan as discussed: {stopplan}. Monitoring through the transition: {mon}
     ]},
 
     {id:"c-dx-bmi", name:"ICD-10, BMI value (adult)", items:[
+      {code:"Z68.1", desc:"BMI 19.9 or less"},
+      {code:"Z68.20", desc:"BMI 20.0-20.9"},
+      {code:"Z68.21", desc:"BMI 21.0-21.9"},
+      {code:"Z68.22", desc:"BMI 22.0-22.9"},
+      {code:"Z68.23", desc:"BMI 23.0-23.9"},
+      {code:"Z68.24", desc:"BMI 24.0-24.9"},
       {code:"Z68.25", desc:"BMI 25.0-25.9"},
       {code:"Z68.26", desc:"BMI 26.0-26.9"},
       {code:"Z68.27", desc:"BMI 27.0-27.9"},
       {code:"Z68.28", desc:"BMI 28.0-28.9"},
       {code:"Z68.29", desc:"BMI 29.0-29.9"},
-      {code:"Z68.30", desc:"BMI 30.0-30.9. The 30-39 range runs Z68.30 through Z68.39 by whole unit."},
+      {code:"Z68.30", desc:"BMI 30.0-30.9"},
+      {code:"Z68.31", desc:"BMI 31.0-31.9"},
+      {code:"Z68.32", desc:"BMI 32.0-32.9"},
+      {code:"Z68.33", desc:"BMI 33.0-33.9"},
+      {code:"Z68.34", desc:"BMI 34.0-34.9"},
       {code:"Z68.35", desc:"BMI 35.0-35.9"},
+      {code:"Z68.36", desc:"BMI 36.0-36.9"},
+      {code:"Z68.37", desc:"BMI 37.0-37.9"},
+      {code:"Z68.38", desc:"BMI 38.0-38.9"},
       {code:"Z68.39", desc:"BMI 39.0-39.9"},
       {code:"Z68.41", desc:"BMI 40.0-44.9"},
       {code:"Z68.42", desc:"BMI 45.0-49.9"},
       {code:"Z68.43", desc:"BMI 50.0-59.9"},
       {code:"Z68.44", desc:"BMI 60.0-69.9"},
       {code:"Z68.45", desc:"BMI 70 or greater"},
-      {code:"NOTE", desc:"Below 40 the codes step by whole unit (Z68.30 to Z68.39). At 40 and above they step by band. Z68.3 alone is a parent code and is not billable."}
+      {code:"NOTE", desc:"Below 40 the codes step by whole unit. At 40 and above they step by band. Z68.2, Z68.3 and Z68.4 are parent codes and are not billable."}
     ]},
 
     {id:"c-dx-metab", name:"ICD-10, diabetes and metabolic", items:[
@@ -1149,6 +1262,455 @@ const Codes = {
       });
       block.appendChild(chips); wrap.appendChild(block);
     });
+  }
+};
+
+// ====================== COVERAGE (tab 4) ======================
+// Letter builder. Everything payer-specific is a field the clinician fills from
+// the plan's own policy: this module ships no coverage criteria and makes no
+// claim about what any plan requires. It also ships no dose logic; the requested
+// dose is whatever the prescriber types.
+//
+// No identifiers are collected. Name, date of birth and member ID print as ***
+// so the clinician fills them in after pasting, outside this app.
+const COVER = {
+  kind: "pa",
+  comorb: [],
+  trials: [],
+  icd: [],
+
+  KINDS: [
+    ["pa",  "Prior authorization", "A first request. States the diagnosis, what has already been tried, and why this agent now."],
+    ["app", "Appeal of a denial",  "Answers the reason the plan actually gave. Quote their words in the denial box and respond to them directly."],
+    ["p2p", "Peer-to-peer prep",   "Not a letter. A one-page sheet to have in front of you on the call, ending with somewhere to record the outcome."]
+  ],
+
+  COMORB: [
+    "hypertension", "type 2 diabetes", "prediabetes", "dyslipidemia",
+    "obstructive sleep apnea", "metabolic dysfunction-associated steatotic liver disease",
+    "established cardiovascular disease", "heart failure with preserved ejection fraction",
+    "chronic kidney disease", "osteoarthritis limiting function", "polycystic ovary syndrome",
+    "gastroesophageal reflux", "asthma worsened by weight", "depression", "infertility"
+  ],
+
+  // Programs, not prices. Terms and eligibility move constantly, so each card
+  // says what the program is and sends the reader to the program's own page.
+  // TODO: verify each URL and each program's current terms before release.
+  //       This container cannot reach these domains to check them.
+  SAVINGS: [
+    {n:"Novo Nordisk, semaglutide products", who:"Ozempic, Wegovy, Rybelsus",
+     url:"https://www.novocare.com",
+     note:"Manufacturer savings and patient assistance hub. Commercial-insurance savings offers and the separate patient assistance program for uninsured patients are both reached from here. Federal beneficiaries are excluded from copay savings offers."},
+    {n:"Eli Lilly, tirzepatide products", who:"Mounjaro, Zepbound",
+     url:"https://www.lilly.com/medicines/support",
+     note:"Manufacturer savings and support. Lilly also sells some presentations direct to self-pay patients at a set price, which is sometimes cheaper than a plan's own tier for a patient with no coverage for the indication."},
+    {n:"Novo Nordisk, liraglutide products", who:"Victoza, Saxenda",
+     url:"https://www.novocare.com",
+     note:"Same hub as above. Generic liraglutide has entered the market, so check whether a generic is stocked and priced lower before working a savings program."},
+    {n:"Medicine Assistance Tool", who:"Any manufacturer",
+     url:"https://medicineassistancetool.org",
+     note:"Search across manufacturer assistance programs in one place. Useful when the patient's situation does not fit the headline offer."},
+    {n:"NeedyMeds", who:"Any manufacturer",
+     url:"https://www.needymeds.org",
+     note:"Independent nonprofit directory of assistance programs, coupons and free clinics. Good fallback when a manufacturer program excludes the patient."}
+  ],
+
+  C(){ return this.KINDS.find(k=>k[0] === this.kind) || this.KINDS[0]; },
+
+  init(){
+    const kh = document.getElementById("cov-kind");
+    if (!kh) return;
+    this.KINDS.forEach(([k, label])=>{
+      const c = document.createElement("button");
+      c.className = "chip" + (k === this.kind ? " on" : "");
+      c.textContent = label; c.dataset.k = k;
+      c.onclick = ()=>{
+        this.kind = k;
+        kh.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on", x.dataset.k === k));
+        this.render();
+      };
+      kh.appendChild(c);
+    });
+
+    const ch = document.getElementById("cov-comorb");
+    this.COMORB.forEach(name=>{
+      const c = document.createElement("button");
+      c.className = "chip"; c.textContent = name; c.dataset.n = name;
+      c.onclick = ()=>{
+        const i = this.comorb.indexOf(name);
+        if (i > -1) this.comorb.splice(i, 1); else this.comorb.push(name);
+        c.classList.toggle("on", this.comorb.indexOf(name) > -1);
+        this.render();
+      };
+      ch.appendChild(c);
+    });
+
+    ["cov-drug","cov-brand","cov-dose","cov-ind","cov-payer","cov-since","cov-wt","cov-ht",
+     "cov-bmi","cov-a1c","cov-lsdur","cov-lswhat","cov-comorb-other","cov-ref","cov-dendate",
+     "cov-denreason","cov-denresp","cov-criteria","cov-meets"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", ()=>{ if (id === "cov-wt" || id === "cov-ht") this.autoBmi(); this.render(); });
+    });
+
+    const si = document.getElementById("cov-icd-search");
+    if (si) si.addEventListener("input", ()=>this.searchIcd(si.value));
+    this.searchIcd("");
+
+    this.renderSavings();
+    this.renderCompound();
+    this.addTrial();
+    this.render();
+  },
+
+  v(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; },
+
+  // Arithmetic on numbers the clinician typed, shown as a convenience. It feeds
+  // the letter's BMI line and nothing else, and never selects a drug or a dose.
+  autoBmi(){
+    const w = parseFloat(this.v("cov-wt")), h = parseFloat(this.v("cov-ht"));
+    const box = document.getElementById("cov-bmi");
+    const note = document.getElementById("cov-bminote");
+    if (!box) return;
+    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) { if (note) note.textContent = ""; return; }
+    const bmi = (w / (h * h)) * 703;
+    if (!box.dataset.touched) box.value = bmi.toFixed(1);
+    if (note) note.textContent = "Calculated BMI " + bmi.toFixed(1) +
+      " from " + w + " lb and " + h + " in. The matching Z68 code is " + this.z68(bmi) +
+      ". Many plans read the Z68 value rather than the obesity code, so put it on the claim.";
+  },
+
+  z68(bmi){
+    if (bmi < 20) return "Z68.1";
+    if (bmi < 30) return "Z68." + Math.floor(bmi);
+    if (bmi < 40) return "Z68." + Math.floor(bmi);
+    if (bmi < 45) return "Z68.41";
+    if (bmi < 50) return "Z68.42";
+    if (bmi < 60) return "Z68.43";
+    if (bmi < 70) return "Z68.44";
+    return "Z68.45";
+  },
+
+  addTrial(){
+    this.trials.push({drug:"", dur:"", dose:"", out:""});
+    this.renderTrials();
+  },
+  renderTrials(){
+    const host = document.getElementById("cov-trials");
+    if (!host) return;
+    host.innerHTML = "";
+    this.trials.forEach((t, i)=>{
+      const row = document.createElement("div");
+      row.className = "pc-grid";
+      row.style.cssText = "grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); align-items:end; margin-bottom:10px;";
+      const mk = (key, label, ph)=>{
+        const d = document.createElement("div"); d.className = "pc-field";
+        const l = document.createElement("label"); l.textContent = label; d.appendChild(l);
+        const inp = document.createElement("input"); inp.type = "text"; inp.value = t[key]; inp.placeholder = ph;
+        inp.addEventListener("input", ()=>{ t[key] = inp.value; this.render(); });
+        d.appendChild(inp); row.appendChild(d);
+      };
+      mk("drug", "Drug", "e.g. metformin");
+      mk("dose", "Dose reached", "e.g. 2000 mg daily");
+      mk("dur",  "How long", "e.g. 9 months");
+      mk("out",  "Why it ended", "e.g. inadequate response");
+      const d = document.createElement("div"); d.className = "pc-field";
+      const b = document.createElement("button"); b.className = "btn small danger"; b.textContent = "Remove";
+      b.onclick = ()=>{ this.trials.splice(i, 1); if (!this.trials.length) this.addTrial(); else this.renderTrials(); this.render(); };
+      d.appendChild(b); row.appendChild(d);
+      host.appendChild(row);
+    });
+  },
+
+  searchIcd(q){
+    const host = document.getElementById("cov-icd-results");
+    if (!host) return;
+    host.innerHTML = "";
+    const nq = NOACC(q.trim());
+    const pool = [];
+    (DATA.codes || []).forEach(g=>{
+      if (!/ICD-10/.test(g.name)) return;
+      g.items.forEach(it=>{ if (it.code !== "NOTE") pool.push(it); });
+    });
+    const hits = (nq ? pool.filter(it=>NOACC(it.code + " " + it.desc).includes(nq)) : pool).slice(0, 14);
+    if (!hits.length) { host.innerHTML = '<span class="hint">No code matches that. The set here is the GLP-1 relevant subset, not all of ICD-10.</span>'; return; }
+    hits.forEach(it=>{
+      const c = document.createElement("button");
+      c.className = "chip" + (this.icd.some(x=>x.code === it.code) ? " on" : "");
+      c.innerHTML = "<b></b>&nbsp;"; c.querySelector("b").textContent = it.code;
+      c.appendChild(document.createTextNode(it.desc.split(".")[0]));
+      c.onclick = ()=>{
+        if (this.icd.some(x=>x.code === it.code)) this.icd = this.icd.filter(x=>x.code !== it.code);
+        else this.icd.push({code:it.code, desc:it.desc});
+        this.searchIcd(document.getElementById("cov-icd-search").value);
+        this.renderChosen(); this.render();
+      };
+      host.appendChild(c);
+    });
+    this.renderChosen();
+  },
+  renderChosen(){
+    const host = document.getElementById("cov-icd-chosen");
+    if (!host) return;
+    host.innerHTML = "";
+    if (!this.icd.length) { host.innerHTML = '<span class="hint">Nothing added yet.</span>'; return; }
+    this.icd.forEach(x=>{
+      const c = document.createElement("button");
+      c.className = "chip on";
+      c.innerHTML = "<b></b>&nbsp;"; c.querySelector("b").textContent = x.code;
+      c.appendChild(document.createTextNode(x.desc.split(".")[0] + "  ✕"));
+      c.title = "Remove from the letter";
+      c.onclick = ()=>{
+        this.icd = this.icd.filter(y=>y.code !== x.code);
+        this.searchIcd(document.getElementById("cov-icd-search").value);
+        this.render();
+      };
+      host.appendChild(c);
+    });
+  },
+
+  icdLine(){
+    if (!this.icd.length) return "***";
+    return this.icd.map(x=>x.code).join(", ");
+  },
+  comorbList(){
+    const extra = this.v("cov-comorb-other");
+    const all = this.comorb.concat(extra ? [extra] : []);
+    if (!all.length) return "";
+    if (all.length === 1) return all[0];
+    return all.slice(0, -1).join(", ") + " and " + all[all.length - 1];
+  },
+  trialLines(){
+    const t = this.trials.filter(x=>x.drug.trim());
+    if (!t.length) return null;
+    return t.map(x=>{
+      const bits = [x.drug.trim()];
+      if (x.dose.trim()) bits.push("at " + x.dose.trim());
+      if (x.dur.trim()) bits.push("for " + x.dur.trim());
+      let line = bits.join(" ");
+      line += x.out.trim() ? ", discontinued for " + x.out.trim() : ", outcome ***";
+      return line;
+    });
+  },
+
+  letter(){
+    const L = [];
+    const drug = this.v("cov-drug") || "***";
+    const brand = this.v("cov-brand");
+    const named = brand ? drug + " (" + brand + ")" : drug;
+    const ind = this.v("cov-ind") || "***";
+    const payer = this.v("cov-payer") || "the plan";
+    const bmi = this.v("cov-bmi");
+    const a1c = this.v("cov-a1c");
+    const co = this.comorbList();
+    const trials = this.trialLines();
+    const crit = this.v("cov-criteria");
+    const meets = this.v("cov-meets");
+    const since = this.v("cov-since");
+    const dose = this.v("cov-dose");
+    const lsdur = this.v("cov-lsdur"), lswhat = this.v("cov-lswhat");
+
+    if (this.kind === "p2p") {
+      L.push("PEER-TO-PEER PREP SHEET");
+      L.push("Not for submission. For the call.");
+      L.push("");
+      L.push("REQUEST");
+      L.push("Drug: " + named + (dose ? ". Requested as " + dose : "") + ".");
+      L.push("Indication: " + ind + ". Diagnosis codes: " + this.icdLine() + ".");
+      L.push("Plan: " + payer + ". Reference: " + (this.v("cov-ref") || "***") + ".");
+      L.push("");
+      L.push("DENIAL REASON ON FILE");
+      L.push(this.v("cov-denreason") || "***");
+      L.push("");
+      L.push("THE THREE FACTS TO LEAD WITH");
+      L.push("1. " + (bmi ? "BMI " + bmi + "." : "BMI ***.") +
+             (co ? " Weight-related conditions: " + co + "." : "") +
+             (a1c ? " Most recent A1c " + a1c + " percent." : ""));
+      L.push("2. " + (trials ? "Prior trials: " + trials.join("; ") + "." : "Prior trials: ***."));
+      L.push("3. " + (lsdur ? "Lifestyle intervention for " + lsdur +
+             (lswhat ? ", consisting of " + lswhat : "") + ", documented in the record." : "Lifestyle intervention: ***."));
+      L.push("");
+      L.push("THE PLAN'S OWN CRITERIA");
+      L.push(crit || "*** paste the criteria before the call ***");
+      L.push("");
+      L.push("HOW THIS PATIENT MEETS THEM");
+      L.push(meets || "***");
+      L.push("");
+      L.push("IF THEY PUSH ON STEP THERAPY");
+      L.push("State what was tried, for how long, at what dose, and why it ended. A trial that ended for intolerance is not the same as one that ended for non-response, and the distinction usually matters to the reviewer.");
+      L.push("");
+      L.push("IF THEY OFFER A DIFFERENT AGENT");
+      L.push("Say whether that agent is clinically acceptable here. If it is, take it; the patient gets treated today. If it is not, say specifically why for this patient rather than in general.");
+      L.push("");
+      L.push("OUTCOME");
+      L.push("Call date and time: ***.   Reviewer name and specialty: ***.");
+      L.push("Result: approved / approved with modification / upheld.");
+      L.push("What they said, in their words: ***");
+      L.push("Next step and deadline: ***");
+      return L.join("\n");
+    }
+
+    const appeal = this.kind === "app";
+    if (appeal) {
+      L.push("RE: Appeal of denial, reference " + (this.v("cov-ref") || "***") +
+             ". Patient: ***. Date of birth: ***. Member ID: ***.");
+      L.push("");
+      L.push("To the medical director:");
+      L.push("");
+      L.push("I am appealing the denial of " + named + " for my patient, communicated on " +
+             (this.v("cov-dendate") || "***") + ". The stated reason was:");
+      L.push("");
+      L.push("    " + (this.v("cov-denreason") || "***"));
+      L.push("");
+      const resp = this.v("cov-denresp");
+      if (resp) { L.push(resp); L.push(""); }
+    } else {
+      L.push("To Whom It May Concern:");
+      L.push("");
+      L.push("I am requesting prior authorization for " + named + " for my patient, for " + ind +
+             ". Diagnosis codes: " + this.icdLine() + (dose ? ". Requested dosing: " + dose : "") +
+             ". Patient: ***. Date of birth: ***. Member ID: ***.");
+      L.push("");
+    }
+
+    L.push("CLINICAL PICTURE");
+    const pic = [];
+    if (since) pic.push("I have cared for this patient since " + since + ".");
+    if (bmi) pic.push("Current BMI is " + bmi + ".");
+    if (a1c) pic.push("The most recent A1c is " + a1c + " percent.");
+    if (co) pic.push("Weight-related conditions documented in the record: " + co + ".");
+    pic.push("The diagnosis and its complications are established in the chart and the supporting notes accompany this request.");
+    L.push(pic.join(" "));
+    L.push("");
+
+    L.push("LIFESTYLE INTERVENTION");
+    if (lsdur || lswhat) {
+      L.push("This patient has participated in a structured lifestyle intervention" +
+        (lsdur ? " for " + lsdur : "") + (lswhat ? ", consisting of " + lswhat : "") +
+        ". That effort is documented in the record and continues alongside pharmacotherapy rather than being replaced by it.");
+    } else {
+      L.push("***");
+    }
+    L.push("");
+
+    L.push("PRIOR THERAPY");
+    if (trials) {
+      L.push("The following have been tried at adequate dose and duration:");
+      trials.forEach((t, i)=>L.push("  " + (i + 1) + ". " + t));
+      L.push("Continuing the current regimen alone leaves the condition inadequately treated.");
+    } else {
+      L.push("***");
+    }
+    L.push("");
+
+    if (crit) {
+      L.push("THE PLAN'S CRITERIA");
+      L.push("Quoting " + payer + "'s published policy:");
+      L.push("");
+      L.push("    " + crit.split("\n").join("\n    "));
+      L.push("");
+      L.push("HOW THIS PATIENT MEETS THEM");
+      L.push(meets || "***");
+      L.push("");
+    }
+
+    L.push("MEDICAL NECESSITY");
+    L.push("The requested therapy is prescribed consistent with its FDA-approved labeling for this indication, and the pre-treatment assessment is complete and documented. Leaving this condition undertreated carries its own cumulative risk, which is the comparison that matters here.");
+    L.push("");
+
+    if (appeal) {
+      L.push("I ask that this denial be overturned and the therapy approved. I am available for a peer-to-peer discussion at ***. Supporting records accompany this appeal.");
+    } else {
+      L.push("Please contact my office at *** with questions or to arrange a peer-to-peer discussion. I appreciate your prompt review.");
+    }
+    L.push("");
+    L.push("Sincerely,");
+    L.push(sigBlock());
+    return L.join("\n");
+  },
+
+  render(){
+    const out = document.getElementById("cov-out");
+    if (!out) return;
+    out.textContent = this.letter();
+    const note = document.getElementById("cov-kindnote");
+    if (note) note.textContent = this.C()[2];
+    const dw = document.getElementById("cov-denialwrap");
+    if (dw) dw.style.display = (this.kind === "pa") ? "none" : "";
+  },
+
+  title(){
+    return this.kind === "p2p" ? "Peer-to-peer prep sheet"
+         : this.kind === "app" ? "Appeal of denial" : "Prior authorization request";
+  },
+  copy(){ copyText(this.letter()); },
+  print(){ App.printSheet(this.title(), this.letter(), "en"); },
+  reset(){
+    ["cov-drug","cov-brand","cov-dose","cov-payer","cov-since","cov-wt","cov-ht","cov-bmi",
+     "cov-a1c","cov-lsdur","cov-lswhat","cov-comorb-other","cov-ref","cov-dendate",
+     "cov-denreason","cov-denresp","cov-criteria","cov-meets"].forEach(id=>{
+      const el = document.getElementById(id); if (el) { el.value = ""; delete el.dataset.touched; }
+    });
+    const ind = document.getElementById("cov-ind"); if (ind) ind.value = "";
+    this.comorb = []; this.icd = []; this.trials = [];
+    document.getElementById("cov-comorb").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    const bn = document.getElementById("cov-bminote"); if (bn) bn.textContent = "";
+    this.addTrial(); this.searchIcd(""); this.render();
+  },
+
+  renderSavings(){
+    const host = document.getElementById("cov-savings");
+    if (!host) return;
+    host.innerHTML = "";
+    this.SAVINGS.forEach(s=>{
+      const sec = document.createElement("div"); sec.className = "comp-section";
+      const h4 = document.createElement("h4");
+      const nm = document.createElement("span"); nm.textContent = s.n;
+      const tg = document.createElement("span"); tg.className = "guidetag"; tg.textContent = s.who;
+      h4.appendChild(nm); h4.appendChild(tg); sec.appendChild(h4);
+      const p = document.createElement("p"); p.style.cssText = "font-size:.88rem; margin-bottom:8px;"; p.textContent = s.note;
+      sec.appendChild(p);
+      const a = document.createElement("a");
+      a.href = s.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = s.url;
+      a.style.cssText = "font-size:.85rem; color:var(--accent-ink); font-weight:600;";
+      sec.appendChild(a);
+      host.appendChild(sec);
+    });
+    const foot = document.createElement("p");
+    foot.className = "modfoot";
+    foot.textContent = "Program terms, eligibility and prices change frequently and differ by insurance status. Check the program's own page before quoting a number to a patient. Federal beneficiaries, including Medicare and Medicaid, are excluded from manufacturer copay savings offers.";
+    host.appendChild(foot);
+  },
+
+  renderCompound(){
+    const host = document.getElementById("cov-compound");
+    if (!host) return;
+    host.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "comp-section";
+    box.style.borderColor = "var(--sev-mod)";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = "Before you refer a patient to a compounded version";
+    const bg = document.createElement("span"); bg.className = "actbadge hold"; bg.textContent = "Read first";
+    h4.appendChild(nm); h4.appendChild(bg); box.appendChild(h4);
+    [
+      "A compounded drug is not an FDA-approved drug. FDA does not review compounded preparations for safety, effectiveness or manufacturing quality before they reach a patient, and the finished preparation carries no approved labeling.",
+      "Compounding of a drug that is commercially available is restricted by law, and what is permitted shifts with a drug's shortage status. A product that was lawfully compounded during a shortage may not be lawful once that shortage resolves.",
+      "Salt forms such as semaglutide sodium and semaglutide acetate are not the active ingredient in any approved product. FDA has warned about them specifically. A preparation using a salt form is not an equivalent of the approved drug at a lower price.",
+      "Dosing errors have been reported with compounded preparations, driven by concentrations that differ from the approved products and by patients drawing from vials with syringes rather than using a pen. If a patient is using one, ask what concentration they have and how they measure a dose.",
+      "Ask which pharmacy, and whether it is a 503A compounder or a 503B outsourcing facility. They operate under different legal requirements and different oversight.",
+      "If a patient is already using one, that is a reason to ask open questions, not to end the conversation. Knowing the product, the concentration and the source is worth more to their safety than a lecture."
+    ].forEach(t=>{
+      const p = document.createElement("p");
+      p.style.cssText = "font-size:.88rem; margin-top:8px;";
+      p.textContent = t;
+      box.appendChild(p);
+    });
+    const tag = document.createElement("span");
+    tag.className = "guidetag";
+    tag.style.marginTop = "10px";
+    tag.textContent = "Verify current shortage and compounding status before advising, since it changes";
+    box.appendChild(tag);
+    host.appendChild(box);
   }
 };
 
