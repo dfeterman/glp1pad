@@ -438,6 +438,15 @@
     </div>
 
     <div class="comp-section">
+      <h4><span>What happens if this is not treated</span>
+        <button class="btn small" onclick="COVER.addSuggested()">Add the ones that fit</button></h4>
+      <p class="hint" style="margin:0 0 9px;">The downstream course is the argument a reviewer is actually weighing, because it is the one with a cost attached. Pick only what fits this patient. A generic list of every complication reads as boilerplate and gets skimmed.</p>
+      <div class="pc-chips" id="cov-conseq"></div>
+      <div class="pc-field" style="margin-top:10px;"><label>What is already happening in this patient</label>
+        <textarea id="cov-conseq-own" placeholder="Trajectory you can document: a rising A1c, albuminuria that appeared this year, a knee heading for replacement. Specific beats general."></textarea></div>
+    </div>
+
+    <div class="comp-section">
       <h4><span>The plan's own criteria</span><span class="guidetag">paste, do not guess</span></h4>
       <p class="hint" style="margin:0 0 9px;">GLP-1 Pad ships no payer criteria. Coverage rules differ by plan, by employer group, and by year, and a letter citing invented criteria gets denied and costs you credibility on the next one. Open the plan's policy, copy the criteria that apply, and paste them here. The letter will quote them back and answer each one.</p>
       <div class="pc-field"><label>Criteria from the plan's published policy</label>
@@ -1279,6 +1288,48 @@ const COVER = {
   trials: [],
   icd: [],
 
+  // Natural history of the untreated condition, selected by the clinician.
+  // These are consequence statements, not outcome claims for any drug: nothing
+  // here says this agent prevents these, only what the untreated course holds.
+  // No frequencies or effect sizes, which would need a source this container
+  // cannot reach. TODO: if cited trial numbers are wanted, add them from the
+  // publications once a source is reachable.
+  CONSEQ: [
+    {k:"dm-insulin", ind:["type 2 diabetes","type 2 diabetes with established cardiovascular disease"],
+     t:"continued loss of glycemic control, with progression toward insulin dependence and the added cost, monitoring and hypoglycemia risk that carries"},
+    {k:"dm-eye", ind:["type 2 diabetes","type 2 diabetes with established cardiovascular disease"],
+     t:"diabetic retinopathy, with the attendant risk of macular edema and irreversible vision loss"},
+    {k:"dm-kidney", ind:["type 2 diabetes","type 2 diabetes with established cardiovascular disease"],
+     t:"diabetic kidney disease, progressing through albuminuria and declining eGFR toward dialysis or transplantation"},
+    {k:"dm-neuro", ind:["type 2 diabetes","type 2 diabetes with established cardiovascular disease"],
+     t:"peripheral neuropathy, foot ulceration, and the amputation risk that follows a non-healing ulcer"},
+    {k:"dm-crisis", ind:["type 2 diabetes"],
+     t:"admission for hyperglycemic crisis, an inpatient cost that recurs while control is inadequate"},
+    {k:"cv-events", ind:["type 2 diabetes with established cardiovascular disease","chronic weight management","type 2 diabetes"],
+     t:"myocardial infarction and stroke, with the acute care, revascularization and rehabilitation each entails"},
+    {k:"cv-hf", ind:["type 2 diabetes with established cardiovascular disease","chronic weight management"],
+     t:"progression of heart failure symptoms and the readmission pattern that follows"},
+    {k:"ob-dm", ind:["chronic weight management","obstructive sleep apnea with obesity"],
+     t:"progression from prediabetes to type 2 diabetes, converting a reversible state into a lifelong one"},
+    {k:"ob-liver", ind:["chronic weight management","type 2 diabetes"],
+     t:"progression of steatotic liver disease through steatohepatitis and fibrosis toward cirrhosis and its complications"},
+    {k:"ob-joint", ind:["chronic weight management"],
+     t:"accelerating knee and hip osteoarthritis, ending in joint replacement, where obesity also raises the perioperative risk and the revision rate"},
+    {k:"ob-osa", ind:["chronic weight management","obstructive sleep apnea with obesity"],
+     t:"worsening obstructive sleep apnea, with its hypertension, arrhythmia, daytime impairment and driving risk"},
+    {k:"ob-bp", ind:["chronic weight management"],
+     t:"hypertension and dyslipidemia requiring escalating pharmacotherapy, each drug with its own cost and adherence burden"},
+    {k:"ob-ca", ind:["chronic weight management"],
+     t:"elevated risk of the malignancies associated with excess adiposity, where screening and treatment costs dwarf the cost of this request"},
+    {k:"ob-fn", ind:["chronic weight management","obstructive sleep apnea with obesity"],
+     t:"functional decline, loss of work capacity, and the disability claims that follow it"},
+    {k:"ob-surg", ind:["chronic weight management"],
+     t:"escalation to bariatric surgery as the remaining option, at a cost well above that of pharmacotherapy"},
+    {k:"ckd", ind:["type 2 diabetes","chronic weight management"],
+     t:"continued decline in renal function toward renal replacement therapy, the single most expensive endpoint on this list"}
+  ],
+  conseq: [],
+
   KINDS: [
     ["pa",  "Prior authorization", "A first request. States the diagnosis, what has already been tried, and why this agent now."],
     ["app", "Appeal of a denial",  "Answers the reason the plan actually gave. Quote their words in the denial box and respond to them directly."],
@@ -1351,6 +1402,24 @@ const COVER = {
       const el = document.getElementById(id);
       if (el) el.addEventListener("input", ()=>{ if (id === "cov-wt" || id === "cov-ht") this.autoBmi(); this.render(); });
     });
+
+    const qh = document.getElementById("cov-conseq");
+    this.CONSEQ.forEach(c=>{
+      const b = document.createElement("button");
+      b.className = "chip"; b.dataset.k = c.k;
+      b.textContent = c.t.length > 58 ? c.t.slice(0, 55).replace(/[,\s]+$/, "") + "…" : c.t;
+      b.title = c.t;
+      b.style.textAlign = "left";
+      b.onclick = ()=>{
+        const i = this.conseq.indexOf(c.k);
+        if (i > -1) this.conseq.splice(i, 1); else this.conseq.push(c.k);
+        b.classList.toggle("on", this.conseq.indexOf(c.k) > -1);
+        this.render();
+      };
+      qh.appendChild(b);
+    });
+    const co = document.getElementById("cov-conseq-own");
+    if (co) co.addEventListener("input", ()=>this.render());
 
     const si = document.getElementById("cov-icd-search");
     if (si) si.addEventListener("input", ()=>this.searchIcd(si.value));
@@ -1468,6 +1537,28 @@ const COVER = {
     });
   },
 
+  // Adds only what matches the chosen indication, so the paragraph stays about
+  // this patient instead of listing every complication of every condition.
+  addSuggested(){
+    const ind = this.v("cov-ind");
+    if (!ind) { toast("Pick an indication first and this knows what fits"); return; }
+    const fit = this.CONSEQ.filter(c=>c.ind.indexOf(ind) > -1);
+    if (!fit.length) { toast("Nothing filed under that indication, so pick by hand"); return; }
+    fit.forEach(c=>{ if (this.conseq.indexOf(c.k) < 0) this.conseq.push(c.k); });
+    document.getElementById("cov-conseq").querySelectorAll(".chip")
+      .forEach(b=>b.classList.toggle("on", this.conseq.indexOf(b.dataset.k) > -1));
+    this.render();
+    toast(fit.length > 6
+      ? "Added " + fit.length + ". Trim to the few this patient is actually heading for."
+      : "Added " + fit.length + " for " + ind);
+  },
+
+  conseqList(){
+    const picked = this.CONSEQ.filter(c=>this.conseq.indexOf(c.k) > -1);
+    if (!picked.length) return null;
+    return picked.map(c=>c.t);
+  },
+
   icdLine(){
     if (!this.icd.length) return "***";
     return this.icd.map(x=>x.code).join(", ");
@@ -1534,6 +1625,13 @@ const COVER = {
       L.push("");
       L.push("HOW THIS PATIENT MEETS THEM");
       L.push(meets || "***");
+      L.push("");
+      L.push("WHAT UNTREATED DISEASE COSTS");
+      const pq = this.conseqList(), pqOwn = this.v("cov-conseq-own");
+      if (pqOwn) L.push(pqOwn);
+      if (pq) pq.forEach(t=>L.push("  \u2022 " + t));
+      if (!pq && !pqOwn) L.push("***");
+      L.push("Put the cost comparison to them directly: this therapy against the care those endpoints require.");
       L.push("");
       L.push("IF THEY PUSH ON STEP THERAPY");
       L.push("State what was tried, for how long, at what dose, and why it ended. A trial that ended for intolerance is not the same as one that ended for non-response, and the distinction usually matters to the reviewer.");
@@ -1613,6 +1711,20 @@ const COVER = {
       L.push("");
     }
 
+    const cq = this.conseqList();
+    const cqOwn = this.v("cov-conseq-own");
+    if (cq || cqOwn) {
+      L.push("WHAT UNTREATED DISEASE COSTS");
+      if (cqOwn) { L.push(cqOwn); L.push(""); }
+      if (cq) {
+        L.push("Left inadequately treated, the expected course of this patient's condition includes:");
+        cq.forEach(t=>L.push("  \u2022 " + t));
+        L.push("");
+        L.push("Each of those endpoints carries a cost to the plan that exceeds the cost of the therapy requested here, and most of them are irreversible once reached. The comparison worth making is not this drug against no drug; it is this drug against the care those complications will require.");
+      }
+      L.push("");
+    }
+
     L.push("MEDICAL NECESSITY");
     L.push("The requested therapy is prescribed consistent with its FDA-approved labeling for this indication, and the pre-treatment assessment is complete and documented. Leaving this condition undertreated carries its own cumulative risk, which is the comparison that matters here.");
     L.push("");
@@ -1632,6 +1744,20 @@ const COVER = {
     const out = document.getElementById("cov-out");
     if (!out) return;
     out.textContent = this.letter();
+    const ch = document.getElementById("cov-conseq");
+    if (ch) {
+      let w = document.getElementById("cov-conseq-warn");
+      if (!w) {
+        w = document.createElement("p"); w.id = "cov-conseq-warn";
+        w.className = "hint"; w.style.margin = "9px 0 0";
+        ch.parentNode.insertBefore(w, ch.nextSibling);
+      }
+      const n = this.conseq.length;
+      w.textContent = n === 0 ? ""
+        : n > 6 ? n + " selected. Past about six this reads as a list rather than a prognosis, and a reviewer skims it. Cut the ones this patient is not actually heading for."
+        : n + " selected.";
+      w.style.color = n > 6 ? "var(--sev-mod)" : "var(--muted)";
+    }
     const note = document.getElementById("cov-kindnote");
     if (note) note.textContent = this.C()[2];
     const dw = document.getElementById("cov-denialwrap");
@@ -1647,11 +1773,12 @@ const COVER = {
   reset(){
     ["cov-drug","cov-brand","cov-dose","cov-payer","cov-since","cov-wt","cov-ht","cov-bmi",
      "cov-a1c","cov-lsdur","cov-lswhat","cov-comorb-other","cov-ref","cov-dendate",
-     "cov-denreason","cov-denresp","cov-criteria","cov-meets"].forEach(id=>{
+     "cov-denreason","cov-denresp","cov-criteria","cov-meets","cov-conseq-own"].forEach(id=>{
       const el = document.getElementById(id); if (el) { el.value = ""; delete el.dataset.touched; }
     });
     const ind = document.getElementById("cov-ind"); if (ind) ind.value = "";
-    this.comorb = []; this.icd = []; this.trials = [];
+    this.comorb = []; this.icd = []; this.trials = []; this.conseq = [];
+    document.getElementById("cov-conseq").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
     document.getElementById("cov-comorb").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
     const bn = document.getElementById("cov-bminote"); if (bn) bn.textContent = "";
     this.addTrial(); this.searchIcd(""); this.render();

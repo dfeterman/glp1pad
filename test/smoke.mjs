@@ -137,6 +137,29 @@ checks.covP2P     = p2p.startsWith('PEER-TO-PEER PREP SHEET') && p2p.includes('O
 checks.covNoCriteria = await page.evaluate(() =>
   !/\b(BMI (?:of )?(?:27|30|35|40)\s*(?:or (?:above|greater)|\+)|must have (?:failed|tried)|plan requires)/i
     .test(JSON.stringify(COVER.SAVINGS) + COVER.COMORB.join(' ') + JSON.stringify(COVER.KINDS)));
+// consequences of non-treatment feed the letter and the P2P sheet
+await page.click('nav.tabs button[data-tab="coverage"]');
+await page.click('#cov-kind .chip >> nth=0');   // back to the PA letter
+checks.covConseqChips = (await page.$$('#cov-conseq .chip')).length === 16;
+await page.click('button:has-text("Add the ones that fit")');
+const fitted = await page.evaluate(() => COVER.conseq.length);
+checks.covConseqFit  = fitted > 0 && fitted < 16;   // indication-scoped, not everything
+checks.covConseqWarn = (await page.innerText('#cov-conseq-warn')).includes('selected');
+checks.covConseqOnlyMatching = await page.evaluate(() => {
+  const ind = document.getElementById('cov-ind').value;
+  return COVER.conseq.every(k => COVER.CONSEQ.find(c => c.k === k).ind.includes(ind));
+});
+await page.fill('#cov-conseq-own', 'A1c has risen 0.8 points over four months despite adherence.');
+const withCq = await page.innerText('#cov-out');
+checks.covConseqInLetter = withCq.includes('WHAT UNTREATED DISEASE COSTS')
+  && withCq.includes('A1c has risen 0.8 points')
+  && withCq.indexOf('WHAT UNTREATED DISEASE COSTS') < withCq.indexOf('MEDICAL NECESSITY');
+// the section states natural history, never an outcome claim for the drug
+checks.covConseqNoDrugClaim = await page.evaluate(() =>
+  !/\b(prevents?|reduces? the risk of|shown to (?:prevent|reduce)|proven to)\b/i
+    .test(COVER.CONSEQ.map(c => c.t).join(' ')));
+await page.click('#cov-kind .chip >> nth=2');
+checks.covConseqInP2P = (await page.innerText('#cov-out')).includes('WHAT UNTREATED DISEASE COSTS');
 checks.covZ68Complete = await page.evaluate(() => {
   const shipped = new Set();
   (DATA.codes||[]).forEach(g => g.items.forEach(i => { if (/^Z68\./.test(i.code)) shipped.add(i.code); }));
