@@ -204,6 +204,13 @@
   .micbtn{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;}
   .micbtn.rec{background:var(--both); border-color:var(--both); color:#fff; animation:micpulse 1.2s infinite;}
   .micbtn-off{opacity:.6;}
+  /* Stat tiles. These lived in RheumPad's joint-exam block, which the shell
+     extraction dropped; the trend charts are the first thing here to use them. */
+  .stat{background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:8px 16px; box-shadow:var(--shadow);}
+  .stat b{font-size:1.3rem; color:var(--accent-ink); line-height:1.25;}
+  .stat span{font-size:.75rem; color:var(--muted); display:block;}
+
   .calc-attr{margin:0 0 10px; padding:11px 15px; border-radius:10px; background:var(--card);
     border:1px solid var(--line); font-size:.79rem; line-height:1.5; color:var(--muted);}
   .calc-attr h5{font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:var(--accent-ink); margin-bottom:6px;}
@@ -474,8 +481,88 @@
   </section>
 
   <section class="tab" id="tab-monitor">
-    <p class="tab-intro">Baseline panel, follow-up intervals by drug and indication, weight and A1c trends, renal flag, and DEXA trigger criteria.</p>
-    <div id="monitor-body"></div>
+    <p class="tab-intro">What to check before the first dose, when to see them again, and the two numbers worth plotting. <b>Nothing on this tab is saved. Values you type here clear when you close the page, and they belong in the chart, not in this app.</b></p>
+
+    <h2 class="sect">Baseline panel</h2>
+    <div class="comp-section">
+      <h4><span>Before the first dose</span>
+        <button class="btn small" onclick="MONITOR.resetBaseline()">Clear</button></h4>
+      <p class="hint" style="margin:0 0 10px;">Tap an item to mark it done. This is a checklist, not a result sheet: it records that you checked, never what you found.</p>
+      <div id="mon-base"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start;">
+      <button class="btn primary" onclick="MONITOR.copyBaseline()">Copy the baseline note</button>
+      <button class="btn" onclick="MONITOR.printBaseline()">Print the checklist</button>
+    </div>
+
+    <h2 class="sect">Follow-up schedule</h2>
+    <div class="comp-section">
+      <h4><span>Set the interval, get the dates</span></h4>
+      <p class="hint" style="margin:0 0 10px;">Intervals are a matter of practice convention rather than label instruction, so you set them and this works out the dates. The defaults below are starting points to change, not recommendations.</p>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">
+        <div class="pc-field"><label>Phase</label>
+          <select id="mon-phase">
+            <option value="titr">Titrating</option>
+            <option value="maint">On a maintenance dose</option>
+            <option value="post">Recently stopped</option>
+          </select></div>
+        <div class="pc-field"><label>Indication</label>
+          <select id="mon-ind">
+            <option value="wt">Weight management</option>
+            <option value="dm">Type 2 diabetes</option>
+            <option value="both">Both</option>
+          </select></div>
+        <div class="pc-field"><label>Today's date</label><input type="date" id="mon-today"></div>
+        <div class="pc-field"><label>Next visit in</label>
+          <div style="display:flex;gap:6px;"><input type="number" id="mon-vis" min="1" value="4" style="width:70px;">
+          <select id="mon-visunit"><option value="w">weeks</option><option value="m">months</option></select></div></div>
+        <div class="pc-field"><label>Labs beforehand, how early</label>
+          <div style="display:flex;gap:6px;"><input type="number" id="mon-lab" min="0" value="7" style="width:70px;">
+          <select id="mon-labunit"><option value="d">days</option><option value="w">weeks</option></select></div></div>
+      </div>
+      <div id="mon-sched" class="filled" style="margin:12px 0 0;"></div>
+      <div class="modal-actions" style="justify-content:flex-start; margin-top:10px;">
+        <button class="btn small primary" onclick="MONITOR.copySchedule()">Copy</button>
+      </div>
+    </div>
+    <div id="mon-drugnote"></div>
+
+    <h2 class="sect">Trends</h2>
+    <p class="tab-intro">Two numbers, two charts. Weight and A1c are measured on different scales, so they are never drawn on shared axes, where the shape of one can be made to say anything about the other.</p>
+    <div class="comp-section">
+      <h4><span>Weight</span>
+        <button class="btn small" onclick="MONITOR.addPoint('wt')">Add a reading</button>
+        <button class="btn small" onclick="MONITOR.clearSeries('wt')">Clear</button></h4>
+      <div id="mon-wt-rows" style="margin-bottom:10px;"></div>
+      <div id="mon-wt-chart"></div>
+    </div>
+    <div class="comp-section">
+      <h4><span>A1c</span>
+        <button class="btn small" onclick="MONITOR.addPoint('a1c')">Add a reading</button>
+        <button class="btn small" onclick="MONITOR.clearSeries('a1c')">Clear</button></h4>
+      <div id="mon-a1c-rows" style="margin-bottom:10px;"></div>
+      <div id="mon-a1c-chart"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start;">
+      <button class="btn primary" onclick="MONITOR.copyTrends()">Copy the trend summary</button>
+    </div>
+
+    <h2 class="sect">Renal</h2>
+    <div class="comp-section">
+      <h4><span>Kidney flag</span></h4>
+      <p class="hint" style="margin:0 0 10px;">The kidney risk on these drugs is almost always volume, not the molecule. Someone who has been vomiting for three days, eating little, and still taking a diuretic and an ACE inhibitor is the patient who ends up with an acute injury.</p>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">
+        <div class="pc-field"><label>Baseline eGFR</label><input type="number" id="mon-egfr0" min="0" step="1" placeholder="mL/min/1.73m²"></div>
+        <div class="pc-field"><label>Most recent eGFR</label><input type="number" id="mon-egfr1" min="0" step="1" placeholder="mL/min/1.73m²"></div>
+      </div>
+      <div class="pc-chips" id="mon-renal" style="margin-top:12px;"></div>
+      <div id="mon-renal-out" style="margin-top:12px;"></div>
+    </div>
+
+    <h2 class="sect">Bone density</h2>
+    <div id="mon-dexa"></div>
+
+    <p class="modfoot">Follow-up intervals here are practice conventions you set, not label instructions, and this tool does not supply them. Decision support only; clinical judgment overrides every output.</p>
   </section>
 
   <section class="tab" id="tab-protect">
@@ -3422,6 +3509,494 @@ const PROTECT = {
     foot.className = "modfoot";
     foot.textContent = "No trial citations or numeric effect sizes are reproduced here, because this build cannot reach a source to verify them. TODO before release: add the primary citations behind each card.";
     host.appendChild(foot);
+  }
+};
+
+// ====================== MONITOR (tab 5) ======================
+// Baseline checklist, a date calculator for follow-up, two trend charts, and a
+// renal flag. Nothing here persists: no localStorage, cleared on reload, and
+// the tab says so. Follow-up intervals are set by the clinician; this module
+// ships none and recommends none.
+const MONITOR = {
+  base: [],
+  renal: [],
+  wt: [],
+  a1c: [],
+
+  BASELINE: [
+    {s:"Everyone", n:"Weight and height recorded, body mass index calculated"},
+    {s:"Everyone", n:"Blood pressure and pulse"},
+    {s:"Everyone", n:"A1c, or fasting glucose where A1c is unreliable"},
+    {s:"Everyone", n:"Renal function with eGFR"},
+    {s:"Everyone", n:"Hepatic panel"},
+    {s:"Everyone", n:"Lipid panel"},
+    {s:"Everyone", n:"Pregnancy status addressed, and contraception discussed where relevant"},
+    {s:"History to take", n:"Personal or family history of medullary thyroid carcinoma"},
+    {s:"History to take", n:"Multiple endocrine neoplasia syndrome type 2"},
+    {s:"History to take", n:"Prior pancreatitis"},
+    {s:"History to take", n:"Gallbladder disease"},
+    {s:"History to take", n:"Gastroparesis or another significant motility disorder"},
+    {s:"History to take", n:"Diabetic retinopathy, and when it was last examined"},
+    {s:"History to take", n:"Eating disorder history"},
+    {s:"History to take", n:"Prior bariatric surgery"},
+    {s:"Medication review", n:"Insulin or a sulfonylurea on board, with hypoglycaemia counselling where either is"},
+    {s:"Medication review", n:"Diuretics, ACE inhibitors or ARBs, which matter on a sick day"},
+    {s:"Medication review", n:"Oral medications with a narrow therapeutic window, given slower gastric emptying"},
+    {s:"Medication review", n:"Anything the patient is buying outside the pharmacy, asked about without judgement"},
+    {s:"Counselling done", n:"Red flags reviewed and the call-us list handed over"},
+    {s:"Counselling done", n:"Injection technique taught and teach-back performed"},
+    {s:"Counselling done", n:"Protein target and resistance training set, not deferred to later"},
+    {s:"Counselling done", n:"What happens on stopping discussed before starting, not after"},
+    {s:"Counselling done", n:"Pre-procedure and anaesthesia advice given"}
+  ],
+
+  RENAL: [
+    "Vomiting or diarrhoea in the last few days",
+    "Eating and drinking much less than usual",
+    "On a diuretic",
+    "On an ACE inhibitor or an ARB",
+    "On an NSAID",
+    "On an SGLT2 inhibitor",
+    "Light-headed on standing",
+    "Urinating less than usual",
+    "Known chronic kidney disease",
+    "Recent contrast imaging"
+  ],
+
+  init(){
+    if (!document.getElementById("mon-base")) return;
+    const t = document.getElementById("mon-today");
+    if (t && !t.value) t.value = new Date().toISOString().slice(0, 10);
+    ["mon-phase","mon-ind","mon-today","mon-vis","mon-visunit","mon-lab","mon-labunit"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) { el.addEventListener("input", ()=>this.schedule()); el.addEventListener("change", ()=>this.schedule()); }
+    });
+    ["mon-egfr0","mon-egfr1"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", ()=>this.renalOut());
+    });
+    this.baseline();
+    const rh = document.getElementById("mon-renal");
+    this.RENAL.forEach(name=>{
+      const c = document.createElement("button");
+      c.className = "chip"; c.textContent = name; c.style.textAlign = "left";
+      c.onclick = ()=>{
+        const i = this.renal.indexOf(name);
+        if (i > -1) this.renal.splice(i, 1); else this.renal.push(name);
+        c.classList.toggle("on", this.renal.indexOf(name) > -1);
+        this.renalOut();
+      };
+      rh.appendChild(c);
+    });
+    this.addPoint("wt"); this.addPoint("a1c");
+    this.schedule(); this.renalOut(); this.drugNote(); this.dexa();
+  },
+
+  // ---------- baseline ----------
+  baseline(){
+    const host = document.getElementById("mon-base");
+    host.innerHTML = "";
+    const secs = [];
+    this.BASELINE.forEach(i=>{ if (secs.indexOf(i.s) < 0) secs.push(i.s); });
+    secs.forEach(sec=>{
+      const h = document.createElement("p");
+      h.style.cssText = "font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:12px 0 6px;";
+      h.textContent = sec;
+      host.appendChild(h);
+      const wrap = document.createElement("div"); wrap.className = "pc-chips";
+      this.BASELINE.filter(i=>i.s === sec).forEach(i=>{
+        const c = document.createElement("button");
+        c.className = "chip" + (this.base.indexOf(i.n) > -1 ? " on" : "");
+        c.textContent = i.n; c.style.textAlign = "left";
+        c.onclick = ()=>{
+          const j = this.base.indexOf(i.n);
+          if (j > -1) this.base.splice(j, 1); else this.base.push(i.n);
+          c.classList.toggle("on", this.base.indexOf(i.n) > -1);
+        };
+        wrap.appendChild(c);
+      });
+      host.appendChild(wrap);
+    });
+  },
+  resetBaseline(){ this.base = []; this.baseline(); },
+  baselineText(){
+    const done = this.BASELINE.filter(i=>this.base.indexOf(i.n) > -1);
+    const left = this.BASELINE.filter(i=>this.base.indexOf(i.n) < 0);
+    const L = [];
+    L.push("Pre-treatment assessment before starting GLP-1 receptor agonist therapy.");
+    L.push("");
+    L.push("Completed (" + done.length + " of " + this.BASELINE.length + "): " +
+      (done.length ? done.map(i=>i.n.toLowerCase()).join("; ") + "." : "none recorded."));
+    if (left.length) {
+      L.push("");
+      L.push("Outstanding: " + left.map(i=>i.n.toLowerCase()).join("; ") + ".");
+    }
+    L.push("");
+    L.push("Results are documented in the chart. This note records what was assessed.");
+    return L.join("\n");
+  },
+  copyBaseline(){ copyText(this.baselineText()); },
+  printBaseline(){
+    const L = ["BASELINE CHECKLIST", ""];
+    let cur = "";
+    this.BASELINE.forEach(i=>{
+      if (i.s !== cur) { cur = i.s; L.push(""); L.push(cur.toUpperCase()); }
+      L.push((this.base.indexOf(i.n) > -1 ? "[x] " : "[ ] ") + i.n);
+    });
+    App.printSheet("Baseline checklist", L.join("\n"), "en");
+  },
+
+  // ---------- follow-up dates ----------
+  addT(d, n, unit){
+    const x = new Date(d.getTime());
+    if (unit === "w") x.setDate(x.getDate() + n * 7);
+    else if (unit === "m") x.setMonth(x.getMonth() + n);
+    else x.setDate(x.getDate() + n);
+    return x;
+  },
+  fmt(d){ return d.toLocaleDateString(undefined, {weekday:"short", year:"numeric", month:"short", day:"numeric"}); },
+  schedule(){
+    const out = document.getElementById("mon-sched");
+    if (!out) return;
+    const tv = document.getElementById("mon-today").value;
+    if (!tv) { out.textContent = "Set today's date."; return; }
+    const today = new Date(tv + "T12:00:00");
+    const vis = parseInt(document.getElementById("mon-vis").value);
+    const vu = document.getElementById("mon-visunit").value;
+    const lab = parseInt(document.getElementById("mon-lab").value);
+    const lu = document.getElementById("mon-labunit").value;
+    if (isNaN(vis) || vis < 1) { out.textContent = "Set the visit interval."; return; }
+    const next = this.addT(today, vis, vu);
+    const L = [];
+    L.push("Next visit: " + this.fmt(next) + ", " + vis + " " + (vu === "w" ? "week" : "month") + (vis > 1 ? "s" : "") + " from today.");
+    if (!isNaN(lab) && lab > 0) {
+      const labDate = this.addT(next, -lab, lu);
+      L.push("Labs drawn by: " + this.fmt(labDate) + ", " + lab + " " + (lu === "d" ? "day" : "week") + (lab > 1 ? "s" : "") + " before that visit.");
+      if (labDate <= today) L.push("That lab date is today or already past, so shorten the lead time or push the visit out.");
+    } else {
+      L.push("No labs scheduled ahead of the visit.");
+    }
+    const phase = document.getElementById("mon-phase").value;
+    const ind = document.getElementById("mon-ind").value;
+    L.push("");
+    L.push("Phase: " + ({titr:"titrating", maint:"on a maintenance dose", post:"recently stopped"}[phase]) +
+           ". Indication: " + ({wt:"weight management", dm:"type 2 diabetes", both:"weight management and type 2 diabetes"}[ind]) + ".");
+    const w = [];
+    if (phase === "titr") w.push("During titration the reason to see them is tolerability, so the interval usually tracks how the last step went rather than the calendar.");
+    if (phase === "post") w.push("After stopping, the things that move are appetite, weight and, where relevant, glucose. Set the interval to catch those rather than to tick a box.");
+    if (ind !== "wt") w.push("Where diabetes is being treated, A1c lags about three months behind a change, so checking it sooner than that mostly measures noise.");
+    if (w.length) { L.push(""); w.forEach(x=>L.push(x)); }
+    out.textContent = L.join("\n");
+  },
+  copySchedule(){ copyText(document.getElementById("mon-sched").textContent); },
+
+  drugNote(){
+    const host = document.getElementById("mon-drugnote");
+    if (!host) return;
+    const box = document.createElement("div");
+    box.className = "comp-section";
+    box.style.borderColor = "var(--sev-mod)";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = "Per-drug monitoring table";
+    const bg = document.createElement("span"); bg.className = "actbadge hold"; bg.textContent = "Not built";
+    h4.appendChild(nm); h4.appendChild(bg); box.appendChild(h4);
+    const p = document.createElement("p");
+    p.style.cssText = "font-size:.88rem; margin-top:7px;";
+    p.textContent = "A table of monitoring intervals broken down by individual drug is not in this build. " +
+      "This container cannot reach DailyMed, accessdata.fda.gov or openFDA, so any per-drug schedule here would be written from memory and presented as though it came from a label. " +
+      "The schedule builder above does the date arithmetic on intervals you set, which is the part that does not depend on a source.";
+    box.appendChild(p);
+    const tag = document.createElement("span");
+    tag.className = "guidetag"; tag.style.marginTop = "9px";
+    tag.textContent = "TODO: build from the prescribing information once a label source is reachable";
+    box.appendChild(tag);
+    host.appendChild(box);
+  },
+
+  // ---------- trends ----------
+  SERIES: {
+    wt:  {label:"Weight", unit:"lb",  step:"0.1", dp:1},
+    a1c: {label:"A1c",    unit:"%",   step:"0.1", dp:1}
+  },
+  addPoint(k){ this[k].push({t:"", v:""}); this.rows(k); },
+  clearSeries(k){ this[k] = []; this.addPoint(k); },
+  rows(k){
+    const host = document.getElementById("mon-" + k + "-rows");
+    if (!host) return;
+    host.innerHTML = "";
+    const s = this.SERIES[k];
+    this[k].forEach((pt, i)=>{
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap;";
+      const lab = document.createElement("input");
+      lab.type = "text"; lab.value = pt.t; lab.placeholder = "label, e.g. visit 1 or Mar";
+      lab.style.cssText = "flex:0 0 190px; border:1px solid var(--line); border-radius:8px; padding:6px 9px; background:var(--card);";
+      lab.addEventListener("input", ()=>{ pt.t = lab.value; this.chart(k); });
+      const val = document.createElement("input");
+      val.type = "number"; val.step = s.step; val.value = pt.v; val.placeholder = s.unit;
+      val.style.cssText = "flex:0 0 120px; border:1px solid var(--line); border-radius:8px; padding:6px 9px; background:var(--card);";
+      val.addEventListener("input", ()=>{ pt.v = val.value; this.chart(k); });
+      const del = document.createElement("button");
+      del.className = "btn small danger"; del.textContent = "Remove";
+      del.onclick = ()=>{ this[k].splice(i, 1); if (!this[k].length) this.addPoint(k); else { this.rows(k); this.chart(k); } };
+      row.appendChild(lab); row.appendChild(val); row.appendChild(del);
+      host.appendChild(row);
+    });
+    this.chart(k);
+  },
+  pts(k){
+    return this[k].map((p, i)=>({t:p.t || "#" + (i + 1), v:parseFloat(p.v)}))
+                  .filter(p=>!isNaN(p.v));
+  },
+
+  // One series per chart, so no legend and no categorical palette: the title
+  // names the measure. Weight and A1c are never drawn together, because two
+  // scales on one frame lets the shape of either say whatever you want.
+  chart(k){
+    const host = document.getElementById("mon-" + k + "-chart");
+    if (!host) return;
+    host.innerHTML = "";
+    const s = this.SERIES[k];
+    const d = this.pts(k);
+    if (d.length < 2) {
+      const p = document.createElement("p");
+      p.className = "hint"; p.style.margin = "0";
+      p.textContent = d.length === 1 ? "One reading entered. Two or more draws the trend." : "Add two or more readings and the trend draws itself.";
+      host.appendChild(p);
+      if (d.length === 1) this.statRow(host, k, d);
+      return;
+    }
+    this.statRow(host, k, d);
+
+    const W = 640, H = 170, ML = 46, MR = 16, MT = 14, MB = 30;
+    const vals = d.map(p=>p.v);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (lo === hi) { lo -= 1; hi += 1; }
+    const pad = (hi - lo) * 0.15;
+    lo -= pad; hi += pad;
+    const x = i => ML + (i * (W - ML - MR)) / (d.length - 1);
+    const y = v => MT + (H - MT - MB) * (1 - (v - lo) / (hi - lo));
+
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", s.label + " over " + d.length + " readings, from " +
+      d[0].v + " to " + d[d.length - 1].v + " " + s.unit);
+    svg.style.cssText = "display:block; max-width:660px; overflow:visible;";
+
+    // recessive gridlines and value axis
+    [0, 0.5, 1].forEach(f=>{
+      const v = lo + (hi - lo) * f;
+      const gy = y(v);
+      const ln = document.createElementNS(NS, "line");
+      ln.setAttribute("x1", ML); ln.setAttribute("x2", W - MR);
+      ln.setAttribute("y1", gy); ln.setAttribute("y2", gy);
+      ln.setAttribute("stroke", "var(--line)"); ln.setAttribute("stroke-width", "1");
+      svg.appendChild(ln);
+      const tx = document.createElementNS(NS, "text");
+      tx.setAttribute("x", ML - 8); tx.setAttribute("y", gy + 4);
+      tx.setAttribute("text-anchor", "end");
+      tx.setAttribute("font-size", "11"); tx.setAttribute("fill", "var(--muted)");
+      tx.textContent = v.toFixed(s.dp);
+      svg.appendChild(tx);
+    });
+
+    // the line: 2px, accent, round joins
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d.map((p, i)=>(i ? "L" : "M") + x(i) + " " + y(p.v)).join(" "));
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "var(--accent)");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path);
+
+    const tip = document.createElement("div");
+    tip.className = "charttip";
+    tip.style.cssText = "position:absolute; pointer-events:none; opacity:0; transition:opacity .1s;" +
+      "background:var(--ink); color:#fff; font-size:.78rem; padding:4px 9px; border-radius:7px; white-space:nowrap; z-index:5;";
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:relative;";
+
+    d.forEach((p, i)=>{
+      const cx = x(i), cy = y(p.v);
+      // a surface ring keeps the marker legible where the line passes under it
+      const ring = document.createElementNS(NS, "circle");
+      ring.setAttribute("cx", cx); ring.setAttribute("cy", cy); ring.setAttribute("r", "5.5");
+      ring.setAttribute("fill", "var(--card)");
+      svg.appendChild(ring);
+      const dot = document.createElementNS(NS, "circle");
+      dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", "4");
+      dot.setAttribute("fill", "var(--accent)");
+      svg.appendChild(dot);
+      // generous hit target, bigger than the mark
+      const hit = document.createElementNS(NS, "circle");
+      hit.setAttribute("cx", cx); hit.setAttribute("cy", cy); hit.setAttribute("r", "16");
+      hit.setAttribute("fill", "transparent");
+      hit.style.cursor = "pointer";
+      hit.addEventListener("mouseenter", ()=>{
+        tip.textContent = p.t + ": " + p.v.toFixed(s.dp) + " " + s.unit;
+        tip.style.left = (cx / W * 100) + "%";
+        tip.style.top = (cy / H * 100) + "%";
+        tip.style.transform = "translate(-50%, -165%)";
+        tip.style.opacity = "1";
+      });
+      hit.addEventListener("mouseleave", ()=>{ tip.style.opacity = "0"; });
+      svg.appendChild(hit);
+      // label the x axis, and only the first and last values, never every point
+      const xl = document.createElementNS(NS, "text");
+      xl.setAttribute("x", cx); xl.setAttribute("y", H - 8);
+      xl.setAttribute("text-anchor", i === 0 ? "start" : i === d.length - 1 ? "end" : "middle");
+      xl.setAttribute("font-size", "11"); xl.setAttribute("fill", "var(--muted)");
+      xl.textContent = p.t.length > 10 ? p.t.slice(0, 9) + "…" : p.t;
+      svg.appendChild(xl);
+      if (i === 0 || i === d.length - 1) {
+        const vl = document.createElementNS(NS, "text");
+        vl.setAttribute("x", cx); vl.setAttribute("y", cy - 12);
+        vl.setAttribute("text-anchor", i === 0 ? "start" : "end");
+        vl.setAttribute("font-size", "12"); vl.setAttribute("font-weight", "700");
+        vl.setAttribute("fill", "var(--ink)");
+        vl.textContent = p.v.toFixed(s.dp);
+        svg.appendChild(vl);
+      }
+    });
+
+    wrap.appendChild(svg); wrap.appendChild(tip);
+    host.appendChild(wrap);
+
+    // the table view, so the chart is never the only way to read the data
+    const det = document.createElement("details");
+    det.style.marginTop = "8px";
+    const sum = document.createElement("summary");
+    sum.style.cssText = "font-size:.8rem; color:var(--muted); cursor:pointer;";
+    sum.textContent = "Show the values as a table";
+    det.appendChild(sum);
+    const tbl = document.createElement("table");
+    tbl.style.cssText = "font-size:.85rem; margin-top:7px; border-collapse:collapse;";
+    d.forEach(p=>{
+      const tr = document.createElement("tr");
+      const td1 = document.createElement("td");
+      td1.textContent = p.t;
+      td1.style.cssText = "padding:3px 16px 3px 0; color:var(--muted);";
+      const td2 = document.createElement("td");
+      td2.textContent = p.v.toFixed(s.dp) + " " + s.unit;
+      td2.style.padding = "3px 0";
+      tr.appendChild(td1); tr.appendChild(td2); tbl.appendChild(tr);
+    });
+    det.appendChild(tbl);
+    host.appendChild(det);
+  },
+
+  statRow(host, k, d){
+    const s = this.SERIES[k];
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;";
+    const tile = (big, small)=>{
+      const b = document.createElement("div"); b.className = "stat";
+      const v = document.createElement("b"); v.textContent = big;
+      const t = document.createElement("span"); t.textContent = small;
+      b.appendChild(v); b.appendChild(t); row.appendChild(b);
+    };
+    const first = d[0].v, last = d[d.length - 1].v;
+    tile(last.toFixed(s.dp) + " " + s.unit, "latest");
+    if (d.length >= 2) {
+      const ch = last - first;
+      tile((ch > 0 ? "+" : "") + ch.toFixed(s.dp), "change from first");
+      if (k === "wt" && first > 0) {
+        tile((ch > 0 ? "+" : "") + (ch / first * 100).toFixed(1) + "%", "of starting weight");
+      }
+    }
+    host.appendChild(row);
+  },
+  copyTrends(){
+    const parts = [];
+    ["wt","a1c"].forEach(k=>{
+      const d = this.pts(k), s = this.SERIES[k];
+      if (d.length < 2) return;
+      const first = d[0].v, last = d[d.length - 1].v, ch = last - first;
+      let t = s.label + ": " + first.toFixed(s.dp) + " " + s.unit + " at " + d[0].t +
+        ", " + last.toFixed(s.dp) + " " + s.unit + " at " + d[d.length - 1].t +
+        ", a change of " + (ch > 0 ? "+" : "") + ch.toFixed(s.dp) + " " + s.unit;
+      if (k === "wt" && first > 0) t += " (" + (ch / first * 100).toFixed(1) + " percent of the starting weight)";
+      t += " across " + d.length + " readings.";
+      parts.push(t);
+    });
+    if (!parts.length) { toast("Add at least two readings to a series first"); return; }
+    copyText(parts.join(" "));
+  },
+
+  // ---------- renal ----------
+  renalOut(){
+    const host = document.getElementById("mon-renal-out");
+    if (!host) return;
+    host.innerHTML = "";
+    const e0 = parseFloat(document.getElementById("mon-egfr0").value);
+    const e1 = parseFloat(document.getElementById("mon-egfr1").value);
+    const haveBoth = !isNaN(e0) && !isNaN(e1) && e0 > 0;
+    const dropPct = haveBoth ? ((e0 - e1) / e0) * 100 : null;
+    const acute = this.renal.filter(r=>/vomiting|eating and drinking|standing|Urinating less/i.test(r));
+    const drugs = this.renal.filter(r=>/diuretic|ACE|NSAID|SGLT2/i.test(r));
+    const bigDrop = dropPct !== null && dropPct >= 25;
+    const anyDrop = dropPct !== null && dropPct >= 10;
+    const concern = bigDrop || (acute.length && drugs.length) || (acute.length >= 2);
+    if (!concern && !anyDrop && !this.renal.length) {
+      host.innerHTML = '<span class="hint">Nothing flagged.</span>';
+      return;
+    }
+    const box = document.createElement("div");
+    box.className = concern ? "redflag" : "comp-section";
+    if (!concern) box.style.borderColor = "var(--sev-mod)";
+    const h4 = document.createElement("h4");
+    h4.textContent = concern ? "Treat this as a volume problem until proven otherwise" : "Worth a closer look";
+    box.appendChild(h4);
+    if (dropPct !== null) {
+      const p = document.createElement("p");
+      p.textContent = "eGFR " + e0 + " to " + e1 + ", a " + Math.abs(dropPct).toFixed(0) + " percent " +
+        (dropPct >= 0 ? "fall" : "rise") + ".";
+      box.appendChild(p);
+    }
+    if (this.renal.length) {
+      const p = document.createElement("p");
+      p.textContent = "Present: " + this.renal.join("; ") + ".";
+      box.appendChild(p);
+    }
+    const ul = document.createElement("ul");
+    const acts = [];
+    if (acute.length) acts.push("Rehydrate first and reassess. Most of these recover with volume.");
+    if (drugs.length) acts.push("Hold what is additive while they are dry: " + drugs.join(", ").toLowerCase() + ". Say explicitly when to restart, because sick-day advice without a restart date turns into a permanent stop.");
+    acts.push("Recheck renal function rather than waiting for the next scheduled visit.");
+    acts.push("Ask what the intake has actually been. A patient on an appetite-suppressing drug can be days into poor intake without calling it illness.");
+    if (bigDrop) acts.push("A fall of this size warrants holding the GLP-1 until the picture is clear and the cause is understood.");
+    acts.push("If vomiting is the driver, that is also a red flag in its own right: rule out pancreatitis and obstruction before settling on dehydration.");
+    acts.forEach(t=>{ const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    box.appendChild(ul);
+    host.appendChild(box);
+  },
+
+  // ---------- bone ----------
+  dexa(){
+    const host = document.getElementById("mon-dexa");
+    if (!host || typeof PROTECT_DATA === "undefined") return;
+    const sec = document.createElement("div"); sec.className = "comp-section";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = "When to think about a scan";
+    const bg = document.createElement("span"); bg.className = "actbadge time"; bg.textContent = "Also on Protect";
+    h4.appendChild(nm); h4.appendChild(bg); sec.appendChild(h4);
+    const p = document.createElement("p");
+    p.style.cssText = "font-size:.88rem; margin-bottom:8px;";
+    p.textContent = "A baseline before or early in therapy is worth more than a scan after a year of loss, because without the baseline a low result cannot be told from a low starting point. Thresholds are set by your own guideline, not here.";
+    sec.appendChild(p);
+    const ul = document.createElement("ul");
+    ul.style.cssText = "font-size:.88rem; padding-left:20px; margin:0;";
+    PROTECT_DATA.DEXA.forEach(t=>{ const li = document.createElement("li"); li.textContent = t; li.style.marginBottom = "3px"; ul.appendChild(li); });
+    sec.appendChild(ul);
+    const b = document.createElement("button");
+    b.className = "btn small"; b.style.marginTop = "10px"; b.textContent = "Open the Protect tab";
+    b.onclick = ()=>App.showTab("protect");
+    sec.appendChild(b);
+    host.appendChild(sec);
   }
 };
 

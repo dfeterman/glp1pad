@@ -300,6 +300,80 @@ await page.evaluate(() => { Packet.sel = []; App.closeModal(); });
 // a stored library from an older build still receives the new content
 checks.eduSeeds = await page.evaluate(() => DEFAULT_DATA.version >= 2);
 
+// --- tab 5 Monitor ---
+await page.click('nav.tabs button[data-tab="monitor"]');
+checks.monBaseline = (await page.$$('#mon-base .chip')).length === 24;
+checks.monRenalChips = (await page.$$('#mon-renal .chip')).length === 10;
+checks.monDexa = (await page.innerText('#mon-dexa')).includes('baseline before or early');
+// the per-drug gap is declared, not silently missing
+const gapText = (await page.innerText('#mon-drugnote')).toLowerCase();  // .actbadge uppercases via CSS
+checks.monGapDeclared = gapText.includes('not built') && gapText.includes('todo')
+  && gapText.includes('would be written from memory');
+// date arithmetic, checked against dates computed here
+await page.fill('#mon-today','2026-10-08');
+await page.fill('#mon-vis','4'); await page.selectOption('#mon-visunit','w');
+await page.fill('#mon-lab','7'); await page.selectOption('#mon-labunit','d');
+const sched = await page.innerText('#mon-sched');
+const mk = (y,m,d) => new Date(y,m,d).toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+checks.monDates = sched.includes(mk(2026,10,5)) && sched.includes(mk(2026,9,29));
+// a lead time that lands in the past is called out rather than printed silently
+await page.fill('#mon-lab','40');
+checks.monLeadWarn = (await page.innerText('#mon-sched')).includes('already past');
+await page.fill('#mon-lab','7');
+// two scales are never drawn on one frame
+checks.monTwoCharts = await page.evaluate(() =>
+  !!document.getElementById('mon-wt-chart') && !!document.getElementById('mon-a1c-chart'));
+// trend chart renders, labels only the endpoints, and offers a table
+await page.evaluate(() => {
+  MONITOR.wt = [{t:'Jan',v:'232'},{t:'Apr',v:'219'},{t:'Jul',v:'208'},{t:'Oct',v:'201'}];
+  MONITOR.rows('wt');
+});
+checks.monChartDots = (await page.$$('#mon-wt-chart svg circle')).length === 12;  // ring+dot+hit per point
+checks.monEndLabels = await page.evaluate(() => {
+  const t = [...document.querySelectorAll('#mon-wt-chart svg text')].map(e => e.textContent);
+  return t.filter(x => x === '232.0' || x === '201.0').length === 2 && !t.includes('219.0');
+});
+checks.monTable = (await page.$$('#mon-wt-chart details table tr')).length === 4;
+// hovering a point shows its value; the hit target is larger than the mark
+checks.monHover = await page.evaluate(() => {
+  const hits = [...document.querySelectorAll('#mon-wt-chart svg circle')].filter(c => c.getAttribute('r') === '16');
+  const dots = [...document.querySelectorAll('#mon-wt-chart svg circle')].filter(c => c.getAttribute('r') === '4');
+  if (hits.length !== 4 || dots.length !== 4) return false;
+  const tip = document.querySelector("#mon-wt-chart .charttip");
+  hits[1].dispatchEvent(new MouseEvent('mouseenter'));
+  const shown = tip.style.opacity === '1' && tip.textContent.includes('Apr') && tip.textContent.includes('219.0');
+  hits[1].dispatchEvent(new MouseEvent('mouseleave'));
+  return shown && tip.style.opacity === '0';
+});
+checks.monAria = (await page.getAttribute('#mon-wt-chart svg','aria-label')).includes('Weight over 4 readings');
+const stats = await page.innerText('#mon-wt-chart');
+checks.monStats = stats.includes('201.0 lb') && stats.includes('-31.0') && stats.includes('-13.4%');
+// the tile caption has to sit under its number, not run on after it
+checks.monStatLayout = await page.evaluate(() => {
+  const t = document.querySelector('#mon-wt-chart .stat');
+  if (!t) return false;
+  const cap = t.querySelector('span'), num = t.querySelector('b');
+  return getComputedStyle(cap).display === 'block'
+    && cap.getBoundingClientRect().top >= num.getBoundingClientRect().bottom - 2;
+});
+// one reading is not a trend
+await page.evaluate(() => { MONITOR.a1c = [{t:'Jan',v:'7.8'}]; MONITOR.rows('a1c'); });
+checks.monOnePoint = (await page.innerText('#mon-a1c-chart')).includes('One reading entered');
+// renal: volume context plus additive drugs escalates
+await page.fill('#mon-egfr0','78'); await page.fill('#mon-egfr1','52');
+checks.monRenalDrop = (await page.innerText('#mon-renal-out')).includes('33 percent');
+checks.monRenalRed = (await page.$$('#mon-renal-out .redflag')).length === 1;
+await page.fill('#mon-egfr0',''); await page.fill('#mon-egfr1','');
+await page.click('#mon-renal .chip >> nth=0');
+await page.click('#mon-renal .chip >> nth=2');
+checks.monRenalCombo = (await page.$$('#mon-renal-out .redflag')).length === 1
+  && (await page.innerText('#mon-renal-out')).includes('Hold what is additive');
+// nothing on this tab persists
+checks.monNoPersist = await page.evaluate(() => {
+  const raw = localStorage.getItem('glp1pad_v1') || '';
+  return !raw.includes('232') && !raw.includes('mon-') && !/"wt":\[/.test(raw);
+});
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);
