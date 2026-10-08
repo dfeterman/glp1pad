@@ -170,6 +170,81 @@ checks.covZ68Complete = await page.evaluate(() => {
 });
 await page.click('#cov-kind .chip >> nth=0');
 
+// --- tab 6 Protect ---
+await page.click('nav.tabs button[data-tab="protect"]');
+checks.prLevels  = (await page.$$('#pr-level .chip')).length === 3;
+checks.prFall    = (await page.$$('#pr-fall .chip')).length === 12;
+checks.prEvidence= (await page.$$('#pr-ev .comp-section')).length === 6;
+checks.prPillars = (await page.$$('#pr-pillars .chip')).length === 6;
+// protein: Devine IBW then adjusted body weight, verified against hand arithmetic
+await page.selectOption('#pr-sex','f');
+await page.fill('#pr-ht','65'); await page.fill('#pr-wt','232');
+const prot = await page.evaluate(() => PROTECT.bodyWeights());
+const ibw = 45.5 + 2.3*5, kg = 232/2.20462, abw = ibw + 0.4*(kg - ibw);
+checks.prIBW = Math.abs(prot.ibw - ibw) < 0.01 && Math.abs(prot.abw - abw) < 0.01 && prot.over === true;
+const ptxt = await page.innerText('#pr-protein-out');
+checks.prProteinOut = ptxt.includes('Adjusted body weight') && /\d+ g of protein a day/.test(ptxt);
+// below ideal weight there is nothing to adjust, and the output must say so
+await page.fill('#pr-wt','100');
+const low = await page.evaluate(() => PROTECT.bodyWeights());
+checks.prNoAdjustLow = low.over === false && Math.abs(low.abw - low.kg) < 0.01
+  && (await page.innerText('#pr-protein-out')).includes('no adjustment is applied');
+await page.fill('#pr-wt','232');
+// training prescription changes with level, and prints bilingually
+const rx1 = await page.innerText('#pr-rx');
+await page.click('#pr-level .chip >> nth=2');
+checks.prRxChanges = (await page.innerText('#pr-rx')) !== rx1;
+await page.click('#pr-level .chip >> nth=0');
+// falls: a prior fall alone escalates to the red block
+await page.click('#pr-fall .chip >> nth=1');
+checks.prFallRed = (await page.$$('#pr-fall-out .redflag')).length === 1;
+// calcium arithmetic and the vitamin D bands
+await page.fill('#pr-dairy','1'); await page.fill('#pr-vitd','16');
+const cad = await page.innerText('#pr-cad-out');
+checks.prCalcium = cad.includes('300 mg from food') && cad.includes('below the intake')
+  && cad.includes('deficient');
+await page.fill('#pr-vitd','34');
+checks.prVitDOk = (await page.innerText('#pr-cad-out')).includes('sufficient range');
+// the plan builder holds its limits and goes bilingual
+await page.click('#pr-pillars .chip >> nth=0');
+await page.click('#pr-pillars .chip >> nth=1');
+await page.click('#pr-pillars .chip >> nth=2');
+checks.prPillarCap = await page.evaluate(() => PROTECT.pillars.length === 2);
+const goalChips = await page.$$('#pr-goals .chip');
+for (let i = 0; i < 4 && i < goalChips.length; i++) await goalChips[i].click();
+checks.prGoalCap = await page.evaluate(() => PROTECT.goals.length === 3);
+await page.click('#pr-lang .chip >> nth=1');
+checks.prSpanish = await page.evaluate(() => {
+  const t = PROTECT.planText('es');
+  return t.includes('POR QUÉ ESTO IMPORTA') && t.includes('MI META DE PROTEÍNA') && t.includes('CUÁNDO LLAMARNOS');
+});
+checks.prEnglish = await page.evaluate(() => PROTECT.planText('en').includes('MY PROTEIN TARGET'));
+// every ported goal carries both languages
+checks.prBilingualGoals = await page.evaluate(() =>
+  PROTECT_DATA.PILLARS.every(p => p.goals.every(g => g.en && g.es && g.en !== g.es)));
+await page.click('#pr-lang .chip >> nth=0');
+// stopping plan
+await page.selectOption('#pr-stopwhy','cost, or coverage has ended');
+const stop = await page.innerText('#pr-stop-out');
+checks.prStop = stop.includes('WHAT CARRIES OVER') && stop.includes('Manufacturer savings')
+  && stop.includes('not as a personal failure');
+// the Spanish printables must be Spanish throughout, not Spanish headings
+// wrapped around English body text
+checks.prRxBilingual = await page.evaluate(() =>
+  PROTECT_DATA.LEVELS.every(l =>
+    l.daysEs && l.progEs && l.careEs &&
+    Array.isArray(l.workEs) && l.workEs.length === l.work.length &&
+    l.daysEs !== l.days && l.progEs !== l.prog));
+checks.prRxEsPrints = await page.evaluate(() => {
+  const out = []; const orig = App.printSheet;
+  App.printSheet = (t, body) => out.push(body);
+  PROTECT_DATA.LEVELS.forEach(l => { PROTECT.level = l.k; PROTECT.printRx('es'); });
+  PROTECT.printStop('es'); App.printSheet = orig; PROTECT.level = 'none';
+  const all = out.join('\n');
+  // any of these surfacing in a Spanish sheet means an untranslated field leaked
+  return !/(sets? of|times a week|repetitions|Soreness|feels easy|dumbbell|push-ups|minutes\b)/i.test(all);
+});
+
 console.log('load: ' + loadMs + ' ms   size: ' + (await page.evaluate(()=>document.documentElement.outerHTML.length)/1024).toFixed(1) + ' KB DOM');
 console.log('');
 for (const [a,b,c] of rows) console.log('  ' + a.padEnd(10) + b.padEnd(10) + c);

@@ -479,8 +479,135 @@
   </section>
 
   <section class="tab" id="tab-protect">
-    <p class="tab-intro">What weight loss costs if nobody protects against it: muscle, bone, and the plan for stopping. Protein target, resistance training prescription, fall risk, calcium and vitamin D.</p>
-    <div id="protect-body"></div>
+    <p class="tab-intro">Weight comes off as fat and as lean mass together unless something is done about it. This tab is the something: a protein target, a training prescription, the bone and fall questions, a lifestyle plan the patient leaves holding, and a plan for the day the drug stops.</p>
+
+    <h2 class="sect">Protein target</h2>
+    <div class="comp-section">
+      <h4><span>Grams per kilogram of adjusted body weight</span></h4>
+      <p class="hint" style="margin:0 0 10px;">Dosing protein on actual weight overshoots in obesity, because adipose tissue is not metabolically active the way lean mass is. Adjusted body weight is the usual compromise. You choose the grams per kilogram; this does the arithmetic and splits it across the day, because a target nobody can picture at breakfast does not get eaten.</p>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
+        <div class="pc-field"><label>Sex for the IBW formula</label>
+          <select id="pr-sex"><option value="f">female</option><option value="m">male</option></select></div>
+        <div class="pc-field"><label>Height (in)</label><input type="number" id="pr-ht" min="0" step="0.25" placeholder="e.g. 65"></div>
+        <div class="pc-field"><label>Actual weight (lb)</label><input type="number" id="pr-wt" min="0" step="0.1" placeholder="e.g. 232"></div>
+        <div class="pc-field"><label>Grams per kg of adjusted weight</label>
+          <select id="pr-gkg">
+            <option value="1.0">1.0 g/kg</option>
+            <option value="1.2" selected>1.2 g/kg</option>
+            <option value="1.4">1.4 g/kg</option>
+            <option value="1.5">1.5 g/kg</option>
+            <option value="1.6">1.6 g/kg</option>
+          </select></div>
+        <div class="pc-field"><label>Meals per day</label>
+          <select id="pr-meals"><option>3</option><option selected>4</option><option>5</option></select></div>
+      </div>
+      <p class="hint" style="margin:10px 0 0;">The grams per kilogram is your call. Higher figures in this range are commonly used where preserving lean mass during active weight loss is the goal, and lower ones where renal function argues for restraint. Check the figure against your own source before you build a plan on it.</p>
+    </div>
+    <div class="comp-section">
+      <h4><span>The target</span><button class="btn small primary" onclick="PROTECT.copyProtein()">Copy</button></h4>
+      <div id="pr-protein-out" class="filled" style="margin:0;"></div>
+    </div>
+    <div class="comp-section">
+      <h4><span>What that looks like on a plate</span></h4>
+      <div id="pr-foods"></div>
+    </div>
+
+    <h2 class="sect">Resistance training</h2>
+    <div class="comp-section">
+      <h4><span>Where is this patient starting</span></h4>
+      <div class="pc-chips" id="pr-level"></div>
+      <p class="hint" id="pr-levelnote" style="margin:9px 0 0;"></p>
+    </div>
+    <div id="pr-rx"></div>
+    <div class="modal-actions" style="justify-content:flex-start;">
+      <button class="btn primary" onclick="PROTECT.copyRx()">Copy the prescription</button>
+      <button class="btn" onclick="PROTECT.printRx('en')">Print the weekly plan</button>
+      <button class="btn" onclick="PROTECT.printRx('es')">Imprimir el plan semanal</button>
+    </div>
+
+    <h2 class="sect">Bone, falls, and the things that get skipped</h2>
+    <div class="comp-section">
+      <h4><span>Fall risk</span><span class="guidetag">tap what applies</span></h4>
+      <div class="pc-chips" id="pr-fall"></div>
+      <div id="pr-fall-out" style="margin-top:12px;"></div>
+    </div>
+    <div class="comp-section">
+      <h4><span>Calcium and vitamin D</span></h4>
+      <p class="hint" style="margin:0 0 10px;">Intake falls when total food falls, and it keeps falling quietly because nobody asks. Count the usual daily servings, then check the number against what this patient needs.</p>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
+        <div class="pc-field"><label>Dairy servings a day</label><input type="number" id="pr-dairy" min="0" step="1" placeholder="milk, yogurt, cheese"></div>
+        <div class="pc-field"><label>Fortified non-dairy servings</label><input type="number" id="pr-fort" min="0" step="1" placeholder="soy or oat milk, tofu"></div>
+        <div class="pc-field"><label>Greens, tinned fish with bones</label><input type="number" id="pr-greens" min="0" step="1" placeholder="servings a day"></div>
+        <div class="pc-field"><label>Calcium supplement (mg/day)</label><input type="number" id="pr-casupp" min="0" step="50" placeholder="0 if none"></div>
+        <div class="pc-field"><label>Most recent 25-OH vitamin D</label><input type="number" id="pr-vitd" min="0" step="1" placeholder="ng/mL, blank if none"></div>
+      </div>
+      <div id="pr-cad-out" class="filled" style="margin:12px 0 0;"></div>
+    </div>
+    <div class="comp-section">
+      <h4><span>Is bone density worth checking</span></h4>
+      <div class="pc-chips" id="pr-dexa"></div>
+      <div id="pr-dexa-out" style="margin-top:12px;"></div>
+    </div>
+
+    <h2 class="sect">The lifestyle plan the patient leaves with</h2>
+    <p class="tab-intro">Pick the framing, pick one or two pillars, then the patient picks the goals. Ported from WholePad. <b>No names, no identifiers: the plan prints blank at the top for you to hand over.</b></p>
+    <div class="comp-section">
+      <h4><span>Framing</span></h4>
+      <div class="pc-chips" id="pr-dz"></div>
+    </div>
+    <div class="comp-section">
+      <h4><span>Pillars</span><span class="guidetag" id="pr-pcount">pick one or two</span></h4>
+      <div class="pc-chips" id="pr-pillars"></div>
+    </div>
+    <div id="pr-goals"></div>
+    <div class="comp-section">
+      <h4><span>Handout language</span></h4>
+      <div class="pc-chips" id="pr-lang"></div>
+    </div>
+    <div id="pr-card"></div>
+    <div class="modal-actions" style="justify-content:flex-start;">
+      <button class="btn primary" onclick="PROTECT.copyNote()">Copy note paragraph</button>
+      <button class="btn" onclick="PROTECT.printPlan()">Print the patient plan</button>
+      <button class="btn" onclick="PROTECT.printHalf()">Print two on one page</button>
+      <button class="btn" onclick="PROTECT.resetPlan()">Clear</button>
+    </div>
+
+    <h2 class="sect">When the drug stops</h2>
+    <div class="comp-section">
+      <h4><span>Build the stopping plan</span></h4>
+      <div class="pc-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
+        <div class="pc-field"><label>Why it is stopping</label>
+          <select id="pr-stopwhy">
+            <option value="">Choose</option>
+            <option>the patient has chosen to stop</option>
+            <option>cost, or coverage has ended</option>
+            <option>a supply interruption</option>
+            <option>side effects</option>
+            <option>pregnancy, or pregnancy is planned</option>
+            <option>the goal was met</option>
+            <option>a clinical reason, documented in the plan</option>
+          </select></div>
+        <div class="pc-field"><label>How much notice is there</label>
+          <select id="pr-stopnotice">
+            <option value="">Choose</option>
+            <option>planned, with weeks of notice</option>
+            <option>short notice</option>
+            <option>already stopped, this is catch-up</option>
+          </select></div>
+      </div>
+      <div id="pr-stop-out" class="filled" style="margin:12px 0 0;"></div>
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button class="btn small primary" onclick="PROTECT.copyStop()">Copy for the note</button>
+        <button class="btn small" onclick="PROTECT.printStop('en')">Print for the patient</button>
+        <button class="btn small" onclick="PROTECT.printStop('es')">Imprimir para el paciente</button>
+      </div>
+    </div>
+
+    <h2 class="sect">Evidence cards</h2>
+    <p class="tab-intro">What to say when a patient asks how much any of this matters. Effect sizes are stated plainly, including where the evidence is thin.</p>
+    <div id="pr-ev"></div>
+
+    <p class="modfoot">Nothing on this tab recommends a drug or a dose. The protein figure is arithmetic on a grams-per-kilogram value you choose, and the training plan is a starting structure to adapt. Decision support only; clinical judgment overrides every output.</p>
   </section>
 
   <section class="tab" id="tab-educate">
@@ -798,6 +925,297 @@ Stopping plan as discussed: {stopplan}. Monitoring through the transition: {mon}
       {code:"NOTE", desc:"Z91.1, Z91.12 and Z91.14 are parent codes and are not billable. The reason for the gap has to be coded, and for GLP-1 therapy that reason is usually cost."}
     ]}
 
+  ]
+};
+
+// ============ PROTECT TAB DATA (tab 6) ============
+// Pillars and goals ported from WholePad, with protein-first and
+// strength-keeping goals added for this population. Read directly by the
+// tab, never user-edited, never stored.
+var PROTECT_DATA = {
+
+  GUIDE: "ACLM six pillars, adapted for lean mass and bone during pharmacologic weight loss",
+
+  // The framing line that opens the patient's printed plan.
+  DZ: [
+    {k:"gen",   n:"On therapy, general",
+     en:"Weight comes off as fat and as muscle together. Protein and strength work are how you keep the muscle, and they matter more on this medication than off it.",
+     es:"El peso se pierde en grasa y en músculo al mismo tiempo. La proteína y el ejercicio de fuerza son la forma de conservar el músculo, y aquí importan más que sin el medicamento."},
+    {k:"older", n:"Older adult",
+     en:"Muscle and bone are already harder to hold onto with age. Everything in this plan is aimed at the strength that keeps you steady on your feet and out of the hospital.",
+     es:"Con la edad ya cuesta más conservar el músculo y el hueso. Todo este plan busca la fuerza que lo mantiene firme de pie y fuera del hospital."},
+    {k:"t2dm",  n:"Type 2 diabetes",
+     en:"Muscle is where your body puts sugar to work. Keeping it protects your blood sugar as well as your strength.",
+     es:"El músculo es donde su cuerpo usa el azúcar. Conservarlo protege su azúcar en la sangre además de su fuerza."},
+    {k:"bone",  n:"Low bone density",
+     en:"Bone follows the load you put on it. Losing weight takes some of that load away, so the strength work in this plan is doing two jobs.",
+     es:"El hueso responde a la carga que recibe. Al bajar de peso esa carga disminuye, así que el ejercicio de fuerza de este plan cumple dos funciones."},
+    {k:"stop",  n:"Stopping soon",
+     en:"These habits are what carries over when the medication stops. They are the part of this that stays yours.",
+     es:"Estos hábitos son lo que queda cuando el medicamento se suspenda. Son la parte de todo esto que sigue siendo suya."},
+    {k:"plateau", n:"Weight has plateaued",
+     en:"A plateau is not a failure, and it is a good moment to shift from losing weight to keeping the muscle you still have.",
+     es:"Un estancamiento no es un fracaso, y es un buen momento para pasar de bajar de peso a conservar el músculo que le queda."}
+  ],
+
+  PILLARS: [
+    {k:"food", n:"Food", hand:"i4-food", goals:[
+      {id:"f1", en:"Add beans, lentils, or chickpeas to 3 meals a week.",
+                es:"Agregar frijoles, lentejas o garbanzos a 3 comidas por semana."},
+      {id:"f2", en:"Use olive oil as my main added fat, for cooking and for dressing.",
+                es:"Usar aceite de oliva como mi grasa principal, para cocinar y para aliñar."},
+      {id:"f3", en:"Put a vegetable or fruit on the plate at every meal.",
+                es:"Poner una verdura o una fruta en el plato en cada comida."},
+      {id:"f4", en:"Eat fish twice a week. Canned sardines, tuna, and salmon count.",
+                es:"Comer pescado dos veces por semana. Las sardinas, el atún y el salmón en lata cuentan."},
+      {id:"f5", en:"Replace sugary drinks with water or unsweetened coffee.",
+                es:"Cambiar las bebidas azucaradas por agua o café sin azúcar."},
+      {id:"f6", en:"Switch to whole grains at one meal a day. Brown rice, oats, corn tortillas.",
+                es:"Cambiar a granos integrales en una comida al día. Arroz integral, avena, tortillas de maíz."},
+      {id:"f7", en:"Keep red and processed meat to once a week or less.",
+                es:"Mantener la carne roja y procesada en una vez por semana o menos."},
+      {id:"f8", en:"Flavor food with herbs, citrus, and spices instead of the salt shaker.",
+                es:"Dar sabor a la comida con hierbas, cítricos y especias en lugar del salero."},
+      {id:"f9", en:"Cook dinner at home 3 more nights a week than I do now.",
+                es:"Cocinar la cena en casa 3 noches más por semana de lo que hago ahora."},
+      {id:"f10", en:"Eat the protein on my plate first, before anything else.",
+                 es:"Comer primero la proteína del plato, antes que todo lo demás."},
+      {id:"f11", en:"Put protein in breakfast, the meal where it usually goes missing.",
+                 es:"Poner proteína en el desayuno, la comida donde casi siempre falta."},
+      {id:"f12", en:"Keep something easy and high in protein ready for the days I cannot face cooking.",
+                 es:"Tener algo fácil y alto en proteína listo para los días en que no puedo cocinar."},
+      {id:"f13", en:"Drink water steadily through the day, away from meals.",
+                 es:"Tomar agua durante todo el día, fuera de las comidas."}
+    ]},
+
+    {k:"move", n:"Movement", hand:"i4-move", goals:[
+      {id:"m1", en:"Walk 10 minutes after one meal a day.",
+                es:"Caminar 10 minutos después de una comida al día."},
+      {id:"m2", en:"Build to 150 minutes a week of walking, swimming, or cycling.",
+                es:"Llegar a 150 minutos por semana de caminata, natación o bicicleta."},
+      {id:"m3", en:"Do sit-to-stand from a chair, 10 times, twice a day.",
+                es:"Pararse y sentarse de una silla, 10 veces, dos veces al día."},
+      {id:"m4", en:"Strength work twice a week with bands or light weights.",
+                es:"Trabajo de fuerza dos veces por semana con bandas o pesas livianas."},
+      {id:"m5", en:"Break up sitting with 2 minutes of movement every hour.",
+                es:"Interrumpir el tiempo sentado con 2 minutos de movimiento cada hora."},
+      {id:"m6", en:"Start with 5 minutes of easy movement 3 days a week and add 2 minutes each week.",
+                es:"Empezar con 5 minutos de movimiento suave 3 días por semana y agregar 2 minutos cada semana."},
+      {id:"m7", en:"Stand on one foot while brushing my teeth, for balance.",
+                es:"Pararme en un pie mientras me cepillo los dientes, para el equilibrio."},
+      {id:"m8", en:"Keep the two strength sessions even on the weeks everything else slips.",
+                es:"Mantener las dos sesiones de fuerza incluso en las semanas en que todo lo demás se cae."},
+      {id:"m9", en:"Add a little weight or one more repetition whenever the last set feels easy.",
+                es:"Agregar un poco de peso o una repetición más cuando la última serie se sienta fácil."}
+    ]},
+
+    {k:"sleep", n:"Sleep", hand:"i4-sleep", goals:[
+      {id:"s1", en:"Wake up at the same time 7 days a week.",
+                es:"Despertar a la misma hora los 7 días de la semana."},
+      {id:"s2", en:"Stop caffeine 8 hours before bed.",
+                es:"Dejar la cafeína 8 horas antes de dormir."},
+      {id:"s3", en:"Charge the phone outside the bedroom.",
+                es:"Cargar el teléfono fuera del cuarto."},
+      {id:"s4", en:"Get outside light within an hour of waking.",
+                es:"Recibir luz natural durante la primera hora del día."},
+      {id:"s5", en:"Keep naps under 30 minutes and before 3 pm.",
+                es:"Mantener las siestas en menos de 30 minutos y antes de las 3 de la tarde."},
+      {id:"s6", en:"Aim for 7 to 9 hours in bed.",
+                es:"Buscar de 7 a 9 horas en la cama."},
+      {id:"s7", en:"Get out of bed if I am awake more than 20 minutes, and return when sleepy.",
+                es:"Levantarme de la cama si llevo más de 20 minutos despierto, y volver cuando tenga sueño."}
+    ]},
+
+    {k:"stress", n:"Stress", hand:"i4-stress", goals:[
+      {id:"t1", en:"Ten minutes a day of breathing, prayer, or a quiet walk without a phone.",
+                es:"Diez minutos al día de respiración, oración o una caminata tranquila sin teléfono."},
+      {id:"t2", en:"Use slow breathing, in 4 seconds and out 6, when stress spikes.",
+                es:"Usar respiración lenta, inhalar 4 segundos y exhalar 6, cuando el estrés sube."},
+      {id:"t3", en:"Write down my top 2 stressors this week.",
+                es:"Escribir mis 2 principales fuentes de estrés esta semana."},
+      {id:"t4", en:"Ask about a referral to a therapist, and ask about CBT.",
+                es:"Preguntar por una referencia a un terapeuta, y preguntar por la terapia cognitivo-conductual."},
+      {id:"t5", en:"Put one screen-free hour on the calendar this week and protect it.",
+                es:"Poner una hora sin pantallas en el calendario esta semana y protegerla."}
+    ]},
+
+    {k:"subst", n:"Tobacco and alcohol", hand:"i4-tobalc", goals:[
+      {id:"a1", en:"Set a quit date within the next 2 weeks.",
+                es:"Elegir una fecha para dejar de fumar dentro de las próximas 2 semanas."},
+      {id:"a2", en:"Start nicotine replacement, a patch plus a lozenge or gum.",
+                es:"Empezar reemplazo de nicotina, un parche más una pastilla o chicle."},
+      {id:"a3", en:"Call the free quitline for coaching.",
+                es:"Llamar a la línea gratuita para recibir asesoría y dejar de fumar."},
+      {id:"a4", en:"Track every drink for 2 weeks to see the real number.",
+                es:"Anotar cada trago durante 2 semanas para ver el número real."},
+      {id:"a5", en:"Keep alcohol to no more than one drink a day, with 2 alcohol-free days a week.",
+                es:"Mantener el alcohol en no más de un trago al día, con 2 días sin alcohol por semana."}
+    ]},
+
+    {k:"connect", n:"Connection", hand:"i4-connect", goals:[
+      {id:"c1", en:"Bring someone with me to my next visit.",
+                es:"Traer a alguien conmigo a mi próxima cita."},
+      {id:"c2", en:"Try one free virtual support group run by a medical organization.",
+                es:"Probar un grupo de apoyo virtual gratuito dirigido por una organización médica."},
+      {id:"c3", en:"Tell 2 people what I actually need when I am having a bad week.",
+                es:"Decirle a 2 personas lo que de verdad necesito en una semana difícil."},
+      {id:"c4", en:"Hold one standing, low-effort plan a week, like a Sunday phone call.",
+                es:"Mantener un plan fijo y de poco esfuerzo por semana, como una llamada los domingos."},
+      {id:"c5", en:"Plan one social contact a week that has nothing to do with my health.",
+                es:"Planear un contacto social por semana que no tenga nada que ver con mi salud."}
+    ]}
+  ],
+
+  // Rough protein per common portion, for the plate view. Household measures,
+  // because grams on a label are not how anyone eats.
+  // TODO: verify each figure against a food composition table before release.
+  FOODS: [
+    ["3 oz chicken breast, about a deck of cards", 26],
+    ["3 oz beef, pork or lamb", 22],
+    ["3 oz fish, a palm-sized fillet", 21],
+    ["1 small tin of tuna or sardines", 20],
+    ["2 eggs", 12],
+    ["1 cup Greek yogurt", 20],
+    ["1 cup cottage cheese", 24],
+    ["1 cup milk or fortified soy milk", 8],
+    ["1 cup cooked beans or lentils", 16],
+    ["1/2 block firm tofu", 20],
+    ["1 scoop whey or soy protein powder", 24],
+    ["2 tbsp peanut butter", 7]
+  ],
+
+  // Starting structures, not a dose. Every line is meant to be adapted.
+  LEVELS: [
+    {k:"none", n:"Not exercising now",
+     note:"The barrier here is starting, not intensity. Bodyweight, two short sessions, and nothing that needs a gym or a change of clothes.",
+     days:"2 days a week, 15 to 20 minutes",
+     work:[
+       "Sit to stand from a dining chair, 8 to 10 times",
+       "Wall push-ups, 8 to 10",
+       "Heel raises holding the counter, 10 to 12",
+       "Standing march, 20 steps",
+       "Hold a sturdy counter and stand on one foot, 10 seconds each side"
+     ],
+     prog:"Add two repetitions to each movement when the last one feels easy. When sit-to-stand reaches 15, move to the next level.",
+     care:"Soreness for a day or two after a new movement is expected. Sharp joint pain is not, and means stop that movement and tell us.",
+     daysEs:"2 días por semana, de 15 a 20 minutos",
+     workEs:[
+       "Pararse y sentarse de una silla del comedor, de 8 a 10 veces",
+       "Lagartijas contra la pared, de 8 a 10",
+       "Pararse de puntillas agarrado del mostrador, de 10 a 12",
+       "Marchar en el mismo lugar, 20 pasos",
+       "Agarrado de un mostrador firme, pararse en un pie, 10 segundos de cada lado"
+     ],
+     progEs:"Agregue dos repeticiones a cada movimiento cuando la última se sienta fácil. Cuando llegue a 15 veces de pararse y sentarse, pase al siguiente nivel.",
+     careEs:"Es normal tener agujetas por uno o dos días después de un movimiento nuevo. El dolor agudo en una articulación no lo es: deje ese movimiento y avísenos."},
+    {k:"some", n:"Some activity already",
+     note:"Walking is happening; loading is not. This adds resistance without turning it into a project.",
+     days:"2 to 3 days a week, 25 to 30 minutes",
+     work:[
+       "Goblet squat holding a dumbbell or a jug of water, 2 sets of 8 to 12",
+       "Incline or knee push-ups, 2 sets of 8 to 12",
+       "One-arm row with a dumbbell or a loaded bag, 2 sets of 10 each side",
+       "Split squat holding a counter, 2 sets of 8 each leg",
+       "Hip hinge to a chair, 2 sets of 10",
+       "Carry something heavy for 30 seconds, twice"
+     ],
+     prog:"When the last set of anything reaches the top of its range with two clean repetitions left in the tank, add weight. Weight first, repetitions second.",
+     care:"Leave two repetitions in reserve on every set. Training to failure buys nothing here and costs recovery.",
+     daysEs:"2 a 3 días por semana, de 25 a 30 minutos",
+     workEs:[
+       "Sentadilla sostiendo una pesa o un galón de agua, 2 series de 8 a 12",
+       "Lagartijas inclinadas o con las rodillas apoyadas, 2 series de 8 a 12",
+       "Remo con un brazo usando una pesa o una bolsa cargada, 2 series de 10 de cada lado",
+       "Zancada agarrado del mostrador, 2 series de 8 por pierna",
+       "Inclinarse hacia adelante hasta tocar una silla, 2 series de 10",
+       "Cargar algo pesado por 30 segundos, dos veces"
+     ],
+     progEs:"Cuando la última serie llegue al número más alto y todavía le queden dos repeticiones, suba el peso. Primero el peso, después las repeticiones.",
+     careEs:"Deje dos repeticiones de reserva en cada serie. Llegar al fallo no sirve aquí y le cuesta la recuperación."},
+    {k:"reg", n:"Trains regularly",
+     note:"The work is already happening. The job is protecting it against a calorie deficit, which is when people quietly reduce load and lose ground.",
+     days:"3 to 4 days a week, 45 minutes",
+     work:[
+       "A squat pattern, 3 sets of 6 to 10",
+       "A hinge pattern: deadlift or hip thrust, 3 sets of 6 to 10",
+       "A horizontal press, 3 sets of 8 to 12",
+       "A horizontal pull, 3 sets of 8 to 12",
+       "A vertical press or pull, 2 sets of 8 to 12",
+       "Loaded carry or core work, 2 sets"
+     ],
+     prog:"Hold the load through the deficit rather than chasing new personal records. Maintaining load on a shrinking body is itself progress.",
+     care:"Recovery is slower in a deficit, so expect sessions to feel harder at the same weight. Protein and sleep do more for this than adding volume.",
+     daysEs:"3 a 4 días por semana, 45 minutos",
+     workEs:[
+       "Un movimiento de sentadilla, 3 series de 6 a 10",
+       "Un movimiento de bisagra de cadera: peso muerto o empuje de cadera, 3 series de 6 a 10",
+       "Un empuje horizontal, 3 series de 8 a 12",
+       "Un jalón horizontal, 3 series de 8 a 12",
+       "Un empuje o jalón vertical, 2 series de 8 a 12",
+       "Cargar peso caminando o trabajo de abdomen, 2 series"
+     ],
+     progEs:"Mantenga el peso durante el déficit en lugar de buscar récords nuevos. Sostener la misma carga con un cuerpo que pesa menos ya es progreso.",
+     careEs:"La recuperación es más lenta con déficit, así que espere que el mismo peso se sienta más pesado. La proteína y el sueño ayudan más que agregar volumen."}
+  ],
+
+  FALL: [
+    "Age 65 or older",
+    "A fall in the past year",
+    "Unsteady, or holds furniture when walking",
+    "Uses a cane or walker",
+    "Light-headed on standing",
+    "On a sedative, opioid, or sleep medication",
+    "On a blood pressure medication, or the dose changed recently",
+    "Vision not corrected, or no eye exam in two years",
+    "Cannot rise from a chair without using the arms",
+    "Afraid of falling, and avoiding activity because of it",
+    "Lives alone",
+    "Known low bone density or a prior fragility fracture"
+  ],
+
+  DEXA: [
+    "Age 65 or older, female",
+    "Age 70 or older, male",
+    "Postmenopausal with a fragility fracture",
+    "Any adult with a fragility fracture after age 50",
+    "Long-term glucocorticoid use",
+    "Rapid or large total weight loss on therapy",
+    "Prior bariatric surgery",
+    "Known osteoporosis risk factor: smoking, heavy alcohol, early menopause, family history of hip fracture",
+    "A condition or drug known to cause bone loss"
+  ],
+
+  EVIDENCE: [
+    {n:"Lean mass is part of what comes off", pillar:"Muscle",
+     claim:"Weight lost with GLP-1 receptor agonist therapy includes a meaningful fraction of lean mass, not fat alone.",
+     effect:"Body composition substudies report a substantial share of total weight lost coming from lean tissue. Proportions vary by study, population and method of measurement, and the figure is not settled.",
+     strength:"Consistent in direction across studies. The exact fraction, and how much of it is muscle rather than water and organ mass, is genuinely contested.",
+     use:"Say that some muscle loss happens with any weight loss, including surgical and dietary, and that the plan is to blunt it rather than pretend it away. Do not quote a precise percentage to a patient; the number moves between studies."},
+    {n:"Resistance training during weight loss", pillar:"Muscle",
+     claim:"Adding resistance training to a weight-loss intervention preserves lean mass compared with the same weight loss without it.",
+     effect:"Trials of diet-induced weight loss with and without resistance training consistently favor the training arm for lean mass retention, with the diet-plus-training group losing a greater proportion of weight as fat.",
+     strength:"Strong and long-standing, from the diet and bariatric literature. Direct trials in GLP-1 therapy specifically are still accumulating.",
+     use:"This is the single most actionable thing on the tab. Two sessions a week with progressive load beats any supplement, and it is also the intervention with the worst adherence, so make it small enough to actually happen."},
+    {n:"Protein during a deficit", pillar:"Muscle",
+     claim:"Higher protein intake during energy restriction reduces lean mass loss relative to lower intake.",
+     effect:"Meta-analyses of energy-restricted diets favor higher protein for preserving fat-free mass, with the effect most visible when resistance training is also present.",
+     strength:"Good for the direction of effect. The optimal grams per kilogram, and the right body weight to dose it on, are not settled.",
+     use:"Pair it with the training; protein alone without load does much less. Appetite suppression is the obstacle, so the practical advice is protein first on the plate, not more food overall."},
+    {n:"Bone density during weight loss", pillar:"Bone",
+     claim:"Weight loss is accompanied by a decrease in bone mineral density, particularly at the hip.",
+     effect:"Observed across dietary, surgical and pharmacologic weight loss. Magnitude tracks with the amount of weight lost. Whether it translates into fracture risk for a given patient depends on where their bone started.",
+     strength:"Consistent for the density change. The fracture consequence is better established after bariatric surgery than after pharmacotherapy, where long-term data are still short.",
+     use:"Worth raising with older patients and anyone with known low bone density before starting, not after a year of loss. It is a reason to load the skeleton, not a reason to withhold treatment."},
+    {n:"What happens after stopping", pillar:"Stopping",
+     claim:"Weight is regained after GLP-1 receptor agonist therapy is discontinued, and cardiometabolic improvements regress with it.",
+     effect:"Withdrawal studies show substantial regain of lost weight within about a year of stopping, with blood pressure, lipids and glycemic measures drifting back toward baseline.",
+     strength:"Strong and reproducible. This is among the better-characterized findings in the area.",
+     use:"Say it before starting, not at the stop. A patient who was told at the outset that this is a long-term therapy takes regain as information rather than as personal failure. Regained weight is not evidence the drug failed, and it is not evidence the patient did."},
+    {n:"Muscle loss and what it costs", pillar:"Muscle",
+     claim:"Lower muscle mass and strength are associated with falls, fracture, functional decline and worse glycemic handling.",
+     effect:"Observational, with the usual confounding. The association with falls and fracture in older adults is strong and consistent.",
+     strength:"Moderate. Mostly observational, and the direction of causation is not always clean.",
+     use:"This is why the fall questions sit on the same tab. For an older adult the thing to protect is not a number on a scan, it is the ability to get out of a chair."}
   ]
 };
 
@@ -1838,6 +2256,605 @@ const COVER = {
     tag.textContent = "Verify current shortage and compounding status before advising, since it changes";
     box.appendChild(tag);
     host.appendChild(box);
+  }
+};
+
+// ====================== PROTECT (tab 6) ======================
+// Lean mass, bone, falls, the lifestyle plan, and the stopping plan.
+// The protein figure is arithmetic on a grams-per-kilogram value the clinician
+// picks; this module never selects that value. Nothing here touches drug dosing.
+const PROTECT = {
+  level: "none",
+  fall: [],
+  dexa: [],
+  dz: "gen",
+  pillars: [],
+  goals: [],
+  lang: "en",
+  MAXP: 2,
+  MAXG: 3,
+
+  D(){ return PROTECT_DATA.DZ.find(d=>d.k === this.dz) || PROTECT_DATA.DZ[0]; },
+  P(k){ return PROTECT_DATA.PILLARS.find(p=>p.k === k); },
+  L(){ return PROTECT_DATA.LEVELS.find(l=>l.k === this.level) || PROTECT_DATA.LEVELS[0]; },
+  v(id){ const e = document.getElementById(id); return e ? e.value.trim() : ""; },
+  n(id){ const x = parseFloat(this.v(id)); return isNaN(x) ? null : x; },
+
+  init(){
+    if (typeof PROTECT_DATA === "undefined") return;
+    if (!document.getElementById("pr-protein-out")) return;
+
+    ["pr-sex","pr-ht","pr-wt","pr-gkg","pr-meals"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", ()=>this.protein());
+      if (el) el.addEventListener("change", ()=>this.protein());
+    });
+    ["pr-dairy","pr-fort","pr-greens","pr-casupp","pr-vitd"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", ()=>this.calcium());
+    });
+    ["pr-stopwhy","pr-stopnotice"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("change", ()=>this.stop());
+    });
+
+    const lv = document.getElementById("pr-level");
+    PROTECT_DATA.LEVELS.forEach(l=>{
+      const c = document.createElement("button");
+      c.className = "chip" + (l.k === this.level ? " on" : "");
+      c.textContent = l.n; c.dataset.k = l.k;
+      c.onclick = ()=>{
+        this.level = l.k;
+        lv.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on", x.dataset.k === l.k));
+        this.rx();
+      };
+      lv.appendChild(c);
+    });
+
+    this.chips("pr-fall", PROTECT_DATA.FALL, this.fall, ()=>this.fallOut());
+    this.chips("pr-dexa", PROTECT_DATA.DEXA, this.dexa, ()=>this.dexaOut());
+
+    const dh = document.getElementById("pr-dz");
+    PROTECT_DATA.DZ.forEach(d=>{
+      const c = document.createElement("button");
+      c.className = "chip" + (d.k === this.dz ? " on" : "");
+      c.textContent = d.n; c.dataset.k = d.k;
+      c.onclick = ()=>{
+        this.dz = d.k;
+        dh.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on", x.dataset.k === d.k));
+        this.plan();
+      };
+      dh.appendChild(c);
+    });
+
+    const ph = document.getElementById("pr-pillars");
+    PROTECT_DATA.PILLARS.forEach(p=>{
+      const c = document.createElement("button");
+      c.className = "chip"; c.textContent = p.n; c.dataset.k = p.k;
+      c.onclick = ()=>{
+        const i = this.pillars.indexOf(p.k);
+        if (i > -1) {
+          this.pillars.splice(i, 1);
+          this.goals = this.goals.filter(g=>!p.goals.some(x=>x.id === g));
+        } else {
+          if (this.pillars.length >= this.MAXP) { toast("Two pillars is the working limit. A patient who leaves with six goals keeps none."); return; }
+          this.pillars.push(p.k);
+        }
+        ph.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on", this.pillars.indexOf(x.dataset.k) > -1));
+        this.goalsUi(); this.plan();
+      };
+      ph.appendChild(c);
+    });
+
+    const lh = document.getElementById("pr-lang");
+    [["en","English"],["es","Español"]].forEach(([v, label])=>{
+      const c = document.createElement("button");
+      c.className = "chip" + (v === this.lang ? " on" : "");
+      c.textContent = label; c.dataset.v = v;
+      c.onclick = ()=>{
+        this.lang = v;
+        lh.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on", x.dataset.v === v));
+        this.goalsUi(); this.plan();
+      };
+      lh.appendChild(c);
+    });
+
+    this.protein(); this.rx(); this.fallOut(); this.dexaOut();
+    this.calcium(); this.goalsUi(); this.plan(); this.stop(); this.evidence();
+  },
+
+  chips(hostId, list, store, after){
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    list.forEach(name=>{
+      const c = document.createElement("button");
+      c.className = "chip"; c.textContent = name; c.style.textAlign = "left";
+      c.onclick = ()=>{
+        const i = store.indexOf(name);
+        if (i > -1) store.splice(i, 1); else store.push(name);
+        c.classList.toggle("on", store.indexOf(name) > -1);
+        after();
+      };
+      host.appendChild(c);
+    });
+  },
+
+  // ---------- protein ----------
+  // Devine ideal body weight, then the usual adjusted body weight. Below ideal
+  // weight there is nothing to adjust, so actual weight is used and the output
+  // says so rather than quietly doing something different.
+  bodyWeights(){
+    const ht = this.n("pr-ht"), wt = this.n("pr-wt");
+    if (ht === null || wt === null || ht <= 0 || wt <= 0) return null;
+    const kg = wt / 2.20462;
+    const base = this.v("pr-sex") === "m" ? 50 : 45.5;
+    const ibw = Math.max(base + 2.3 * (ht - 60), base * 0.6);
+    const over = kg > ibw;
+    const abw = over ? ibw + 0.4 * (kg - ibw) : kg;
+    return {kg, ibw, abw, over};
+  },
+  protein(){
+    const out = document.getElementById("pr-protein-out");
+    if (!out) return;
+    const b = this.bodyWeights();
+    if (!b) { out.textContent = "Enter height and weight."; this.foods(null); return; }
+    const gkg = parseFloat(this.v("pr-gkg")) || 1.2;
+    const meals = parseInt(this.v("pr-meals")) || 4;
+    const total = b.abw * gkg;
+    const per = total / meals;
+    const L = [];
+    L.push("Ideal body weight " + b.ibw.toFixed(1) + " kg. Actual " + b.kg.toFixed(1) + " kg.");
+    L.push(b.over
+      ? "Adjusted body weight " + b.abw.toFixed(1) + " kg, from ideal plus 40 percent of the excess."
+      : "Actual weight is at or below ideal, so no adjustment is applied and the target is dosed on actual weight.");
+    L.push("");
+    L.push("At " + gkg.toFixed(1) + " g/kg of " + (b.over ? "adjusted" : "actual") + " weight: " +
+           Math.round(total) + " g of protein a day.");
+    L.push("Across " + meals + " eating occasions: about " + Math.round(per) + " g each.");
+    L.push("");
+    L.push("The per-meal number is the one worth giving the patient. A daily total is hard to picture; " +
+           Math.round(per) + " g at breakfast is a decision they can make tomorrow morning.");
+    out.textContent = L.join("\n");
+    this.foods(per);
+  },
+  foods(per){
+    const host = document.getElementById("pr-foods");
+    if (!host) return;
+    host.innerHTML = "";
+    if (per === null) { host.innerHTML = '<span class="hint">Fill the fields above and this shows what one meal has to contain.</span>'; return; }
+    const p = document.createElement("p");
+    p.className = "hint"; p.style.margin = "0 0 9px";
+    p.textContent = "Roughly " + Math.round(per) + " g per meal. One of these, or a combination, gets there:";
+    host.appendChild(p);
+    const wrap = document.createElement("div"); wrap.className = "pc-chips";
+    PROTECT_DATA.FOODS.forEach(([name, g])=>{
+      const c = document.createElement("span");
+      c.className = "chip";
+      if (g >= per) c.classList.add("on");
+      c.innerHTML = "<b></b>&nbsp;"; c.querySelector("b").textContent = g + " g";
+      c.appendChild(document.createTextNode(name));
+      c.style.cursor = "default";
+      wrap.appendChild(c);
+    });
+    host.appendChild(wrap);
+    const f = document.createElement("p");
+    f.className = "hint"; f.style.margin = "9px 0 0";
+    f.textContent = "Filled chips reach the per-meal target on their own. The rest need pairing. Portions are approximate household measures, not label values.";
+    host.appendChild(f);
+  },
+  proteinText(){
+    const b = this.bodyWeights();
+    if (!b) return null;
+    const gkg = parseFloat(this.v("pr-gkg")) || 1.2;
+    const meals = parseInt(this.v("pr-meals")) || 4;
+    const total = b.abw * gkg, per = total / meals;
+    return "Protein target discussed and set at " + gkg.toFixed(1) + " g/kg of " +
+      (b.over ? "adjusted body weight (" + b.abw.toFixed(1) + " kg, Devine ideal weight " + b.ibw.toFixed(1) +
+      " kg plus 40 percent of the excess over it)" : "actual body weight (" + b.kg.toFixed(1) + " kg)") +
+      ", giving approximately " + Math.round(total) + " g daily, divided as about " + Math.round(per) +
+      " g across " + meals + " eating occasions. Rationale for protecting lean mass during pharmacologic weight loss was discussed, along with the practical obstacle that reduced appetite makes the target harder to reach, and the strategy of eating protein first.";
+  },
+  copyProtein(){
+    const t = this.proteinText();
+    if (!t) { toast("Enter height and weight first"); return; }
+    copyText(t);
+  },
+
+  // ---------- resistance training ----------
+  rx(){
+    const host = document.getElementById("pr-rx");
+    if (!host) return;
+    const l = this.L();
+    const note = document.getElementById("pr-levelnote");
+    if (note) note.textContent = l.note;
+    host.innerHTML = "";
+    const sec = document.createElement("div"); sec.className = "comp-section";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = "The prescription";
+    const bg = document.createElement("span"); bg.className = "actbadge time"; bg.textContent = l.days;
+    h4.appendChild(nm); h4.appendChild(bg); sec.appendChild(h4);
+    const ul = document.createElement("ul");
+    ul.style.cssText = "font-size:.9rem; padding-left:20px; margin:4px 0 0;";
+    l.work.forEach(w=>{ const li = document.createElement("li"); li.textContent = w; li.style.marginBottom = "4px"; ul.appendChild(li); });
+    sec.appendChild(ul);
+    [["How it progresses", l.prog], ["What to tell them about soreness", l.care]].forEach(([k, t])=>{
+      const p = document.createElement("p");
+      p.style.cssText = "font-size:.88rem; margin-top:9px;";
+      const b = document.createElement("b"); b.textContent = k + ": ";
+      p.appendChild(b); p.appendChild(document.createTextNode(t));
+      sec.appendChild(p);
+    });
+    host.appendChild(sec);
+  },
+  rxText(){
+    const l = this.L();
+    return "Resistance training prescribed, starting level: " + l.n.toLowerCase() + ". " +
+      "Frequency " + l.days + ". Movements: " + l.work.join("; ") + ". " +
+      "Progression: " + l.prog + " " +
+      "Counseled on expected post-exertional soreness versus pain that should stop the movement. " +
+      "Rationale for resistance training during pharmacologic weight loss was discussed, specifically preservation of lean mass and of the strength that keeps a patient independent.";
+  },
+  copyRx(){ copyText(this.rxText()); },
+  printRx(lang){
+    const l = this.L();
+    const es = lang === "es";
+    const L = [];
+    L.push(es ? "SU PLAN DE FUERZA" : "YOUR STRENGTH PLAN");
+    L.push("");
+    L.push((es ? "Cuántas veces: " : "How often: ") + (es ? l.daysEs : l.days));
+    L.push("");
+    L.push(es ? "QUÉ HACER" : "WHAT TO DO");
+    (es ? l.workEs : l.work).forEach((w, i)=>L.push((i + 1) + ". " + w));
+    L.push("");
+    L.push(es ? "CÓMO AVANZAR" : "HOW TO PROGRESS");
+    L.push(es ? l.progEs : l.prog);
+    L.push("");
+    L.push(es ? "QUÉ ES NORMAL Y QUÉ NO" : "WHAT IS NORMAL AND WHAT IS NOT");
+    L.push(es ? l.careEs : l.care);
+    L.push("");
+    L.push(es ? "POR QUÉ ESTO IMPORTA" : "WHY THIS MATTERS");
+    L.push(es
+      ? "Al bajar de peso se pierde grasa y músculo a la vez. El ejercicio de fuerza es lo que le dice al cuerpo que conserve el músculo. Dos sesiones por semana hechas de verdad valen más que cinco planeadas."
+      : "Weight comes off as fat and as muscle together. Strength work is the signal that tells your body to keep the muscle. Two sessions a week that actually happen beat five that are only planned.");
+    L.push("");
+    L.push(es ? "CUÁNDO LLAMARNOS" : "WHEN TO CALL US");
+    L.push(es
+      ? "Si tiene dolor agudo en una articulación, dolor en el pecho, falta de aire inusual o mareo durante el ejercicio."
+      : "Sharp joint pain, chest pain, unusual breathlessness, or dizziness during exercise.");
+    App.printSheet(es ? "Su plan de fuerza" : "Your strength plan", L.join("\n"), lang);
+  },
+
+  // ---------- falls ----------
+  fallOut(){
+    const host = document.getElementById("pr-fall-out");
+    if (!host) return;
+    host.innerHTML = "";
+    const n = this.fall.length;
+    if (!n) { host.innerHTML = '<span class="hint">Nothing flagged.</span>'; return; }
+    const box = document.createElement("div");
+    const high = n >= 3 || this.fall.indexOf("A fall in the past year") > -1;
+    box.className = high ? "redflag" : "comp-section";
+    if (!high) box.style.borderColor = "var(--sev-mod)";
+    const h4 = document.createElement("h4");
+    h4.textContent = high ? "Fall risk, act on this" : "Fall risk flagged";
+    box.appendChild(h4);
+    const p = document.createElement("p");
+    p.textContent = n + (n === 1 ? " factor" : " factors") + " present: " + this.fall.join("; ") + ".";
+    box.appendChild(p);
+    const ul = document.createElement("ul");
+    [
+      "Watch them rise from a chair without using the arms, and walk. It takes thirty seconds and tells you more than the list.",
+      "Review every medication that sedates or drops blood pressure, and remember that a shrinking patient on an unchanged antihypertensive dose is a falls risk in itself.",
+      "Check an orthostatic blood pressure, which matters more when intake has dropped.",
+      "Strength and balance training is the intervention with the best evidence for preventing falls, and it is already prescribed above.",
+      "Check vitamin D status and address a deficiency.",
+      "Ask about the home: lighting, loose rugs, the route to the bathroom at night."
+    ].forEach(t=>{ const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    box.appendChild(ul);
+    host.appendChild(box);
+  },
+
+  // ---------- calcium and vitamin D ----------
+  // Rough intake arithmetic from household servings, to find the patient who is
+  // nowhere near their needs. It is an estimate, and the output says so.
+  calcium(){
+    const out = document.getElementById("pr-cad-out");
+    if (!out) return;
+    const d = this.n("pr-dairy") || 0, f = this.n("pr-fort") || 0,
+          g = this.n("pr-greens") || 0, supp = this.n("pr-casupp") || 0;
+    const vitd = this.n("pr-vitd");
+    if (!d && !f && !g && !supp && vitd === null) { out.textContent = "Fill in what they usually take in."; return; }
+    const diet = d * 300 + f * 300 + g * 100;
+    const total = diet + supp;
+    const L = [];
+    L.push("Estimated calcium: about " + Math.round(diet) + " mg from food" +
+           (supp ? " plus " + Math.round(supp) + " mg supplemented, roughly " + Math.round(total) + " mg a day." : " a day.") );
+    L.push("A rough figure from household servings, not a dietary assessment. A dietitian referral is the accurate version.");
+    L.push("");
+    L.push(total < 1000
+      ? "That is below the intake usually recommended for adults, and worth addressing. Food first where possible, since it is better tolerated than a supplement on a stomach that is already slow."
+      : "That is in the usual adult range. Recheck it if intake drops further as appetite falls.");
+    L.push("");
+    if (vitd === null) {
+      L.push("No vitamin D level entered. Worth checking in anyone with the fall or bone risks flagged above.");
+    } else if (vitd < 20) {
+      L.push("25-OH vitamin D " + vitd + " ng/mL: deficient by the usual threshold. Treat, then recheck, and address it before attributing weakness or falls to anything else.");
+    } else if (vitd < 30) {
+      L.push("25-OH vitamin D " + vitd + " ng/mL: insufficient by most thresholds. Worth correcting in a patient with bone or fall risk.");
+    } else {
+      L.push("25-OH vitamin D " + vitd + " ng/mL: within the usual sufficient range.");
+    }
+    L.push("");
+    L.push("Both intakes fall as total food falls, and they fall quietly. Ask again at each visit rather than once at the start.");
+    out.textContent = L.join("\n");
+  },
+
+  dexaOut(){
+    const host = document.getElementById("pr-dexa-out");
+    if (!host) return;
+    host.innerHTML = "";
+    if (!this.dexa.length) { host.innerHTML = '<span class="hint">Nothing selected. These are the usual reasons to think about a scan, not a rule.</span>'; return; }
+    const sec = document.createElement("div"); sec.className = "comp-section";
+    sec.style.borderColor = "var(--accent)";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = "Reasons present to consider bone density";
+    const bg = document.createElement("span"); bg.className = "actbadge time"; bg.textContent = this.dexa.length + " selected";
+    h4.appendChild(nm); h4.appendChild(bg); sec.appendChild(h4);
+    const ul = document.createElement("ul");
+    ul.style.cssText = "font-size:.89rem; padding-left:20px; margin:4px 0 0;";
+    this.dexa.forEach(t=>{ const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    sec.appendChild(ul);
+    const p = document.createElement("p");
+    p.style.cssText = "font-size:.88rem; margin-top:9px; color:var(--muted);";
+    p.textContent = "A baseline before or early in therapy is worth more than a scan after a year of loss, because without the baseline you cannot tell a change from a starting point. Screening thresholds are set by your own guideline, not by this tool.";
+    sec.appendChild(p);
+    const btn = document.createElement("button");
+    btn.className = "btn small"; btn.style.marginTop = "10px"; btn.textContent = "Copy for the note";
+    btn.onclick = ()=>copyText("Bone density assessment considered. Reasons present: " + this.dexa.join("; ") +
+      ". Rationale for baseline assessment before substantial weight loss was discussed.");
+    sec.appendChild(btn);
+    host.appendChild(sec);
+  },
+
+  // ---------- the lifestyle plan ----------
+  goalsUi(){
+    const host = document.getElementById("pr-goals");
+    if (!host) return;
+    host.innerHTML = "";
+    if (!this.pillars.length) { host.innerHTML = '<div class="empty">Pick a pillar above to see the goals.</div>'; return; }
+    this.pillars.forEach(pk=>{
+      const p = this.P(pk); if (!p) return;
+      const sec = document.createElement("div"); sec.className = "comp-section";
+      const h4 = document.createElement("h4");
+      const nm = document.createElement("span"); nm.textContent = p.n + " goals";
+      h4.appendChild(nm); sec.appendChild(h4);
+      const row = document.createElement("div"); row.className = "pc-chips";
+      p.goals.forEach(g=>{
+        const c = document.createElement("button");
+        c.className = "chip" + (this.goals.indexOf(g.id) > -1 ? " on" : "");
+        c.textContent = this.lang === "es" ? g.es : g.en;
+        c.style.textAlign = "left"; c.dataset.g = g.id;
+        c.onclick = ()=>{
+          const i = this.goals.indexOf(g.id);
+          if (i > -1) this.goals.splice(i, 1);
+          else {
+            if (this.goals.length >= this.MAXG) { toast("Three goals is the ceiling. Fewer goals get kept."); return; }
+            this.goals.push(g.id);
+          }
+          c.classList.toggle("on", this.goals.indexOf(g.id) > -1);
+          this.plan();
+        };
+        row.appendChild(c);
+      });
+      sec.appendChild(row);
+      host.appendChild(sec);
+    });
+  },
+  chosen(){
+    const out = [];
+    this.pillars.forEach(pk=>{
+      const p = this.P(pk); if (!p) return;
+      p.goals.forEach(g=>{ if (this.goals.indexOf(g.id) > -1) out.push({p:p, g:g}); });
+    });
+    return out;
+  },
+  planText(lang){
+    const es = lang === "es";
+    const d = this.D();
+    const picks = this.chosen();
+    const L = [];
+    L.push(es ? "POR QUÉ ESTO IMPORTA" : "WHY THIS MATTERS");
+    L.push(es ? d.es : d.en);
+    L.push("");
+    L.push(es ? "LO QUE VOY A HACER" : "WHAT I WILL DO");
+    if (!picks.length) L.push("1. ______________________________");
+    else picks.forEach((x, i)=>L.push((i + 1) + ". " + (es ? x.g.es : x.g.en)));
+    const b = this.bodyWeights();
+    if (b) {
+      const gkg = parseFloat(this.v("pr-gkg")) || 1.2;
+      const meals = parseInt(this.v("pr-meals")) || 4;
+      const per = Math.round((b.abw * gkg) / meals);
+      L.push("");
+      L.push(es ? "MI META DE PROTEÍNA" : "MY PROTEIN TARGET");
+      L.push(es
+        ? "Aproximadamente " + per + " gramos de proteína en cada comida, " + meals + " veces al día. Coma la proteína primero."
+        : "About " + per + " g of protein at each meal, " + meals + " times a day. Eat the protein first.");
+    }
+    L.push("");
+    L.push(es ? "CUÁNDO LLAMARNOS" : "WHEN TO CALL US");
+    L.push(es
+      ? "Si no puede retener líquidos, si tiene dolor fuerte de estómago que no se quita, si se siente mareado al pararse, o si se cae."
+      : "If you cannot keep fluids down, if you have severe stomach pain that does not let up, if you feel dizzy standing up, or if you have a fall.");
+    L.push("");
+    L.push(es
+      ? "Estos hábitos trabajan junto con su medicamento, no en lugar de él. No cambie ni suspenda ningún medicamento por su cuenta."
+      : "These habits work alongside your medication, never in place of it. Do not change or stop any medicine on your own.");
+    return L.join("\n");
+  },
+  plan(){
+    const host = document.getElementById("pr-card");
+    if (!host) return;
+    host.innerHTML = "";
+    const cnt = document.getElementById("pr-pcount");
+    if (cnt) cnt.textContent = this.pillars.length ? this.pillars.length + " of 2 picked" : "pick one or two";
+    const d = this.D();
+    const picks = this.chosen();
+    const card = document.createElement("div"); card.className = "comp-section";
+    const h4 = document.createElement("h4");
+    const nm = document.createElement("span"); nm.textContent = d.n + " plan";
+    const bg = document.createElement("span");
+    bg.className = "actbadge " + (picks.length ? "go" : "hold");
+    bg.textContent = picks.length ? picks.length + (picks.length === 1 ? " goal" : " goals") : "no goals yet";
+    h4.appendChild(nm); h4.appendChild(bg); card.appendChild(h4);
+    const p = document.createElement("p");
+    p.style.fontSize = ".92rem"; p.textContent = this.lang === "es" ? d.es : d.en;
+    card.appendChild(p);
+    const note = document.createElement("p");
+    note.style.cssText = "font-size:.85rem; color:var(--muted); margin-top:8px; white-space:pre-wrap;";
+    note.textContent = picks.length ? "Note paragraph:\n" + this.noteText()
+      : "Pick goals above and the note paragraph builds itself here.";
+    card.appendChild(note);
+    const tag = document.createElement("span"); tag.className = "guidetag"; tag.textContent = PROTECT_DATA.GUIDE;
+    card.appendChild(tag);
+    host.appendChild(card);
+  },
+  noteText(){
+    const picks = this.chosen();
+    const names = this.pillars.map(k=>{ const p = this.P(k); return p ? p.n.toLowerCase() : k; }).join(" and ");
+    let t = "Lifestyle counseling delivered as part of today's visit, directed at preserving lean mass and bone during pharmacologic weight loss. ";
+    t += "Discussed " + (names || "the lifestyle pillars") + " in that context. ";
+    t += "Reviewed honestly that weight lost on therapy includes lean tissue, that resistance training and adequate protein are what blunt it, and that these measures supplement rather than replace the pharmacotherapy. ";
+    if (picks.length) t += "Patient chose the following goals in their own words: " + picks.map((x, i)=>(i + 1) + ") " + x.g.en).join(" ") + " ";
+    t += "Written plan provided in " + (this.lang === "es" ? "Spanish" : "English") + ". ";
+    t += "Readiness assessed and barriers identified. Progress to be reviewed at the next visit.";
+    return t;
+  },
+  copyNote(){
+    if (!this.chosen().length) { toast("Pick at least one goal first"); return; }
+    copyText(this.noteText());
+  },
+  printPlan(){
+    App.printSheet(this.lang === "es" ? "Su plan" : "Your plan", this.planText(this.lang), this.lang);
+  },
+  printHalf(){
+    App.printHalf(this.lang === "es" ? "Su plan" : "Your plan", this.planText(this.lang), this.lang);
+  },
+  resetPlan(){
+    this.pillars = []; this.goals = [];
+    document.getElementById("pr-pillars").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    this.goalsUi(); this.plan();
+  },
+
+  // ---------- stopping ----------
+  stop(){
+    const out = document.getElementById("pr-stop-out");
+    if (!out) return;
+    const why = this.v("pr-stopwhy"), notice = this.v("pr-stopnotice");
+    if (!why) { out.textContent = "Pick why it is stopping and this builds the plan."; return; }
+    const L = [];
+    L.push("Plan for stopping " + (why ? "because " + why : "") + (notice ? ", with " + notice : "") + ".");
+    L.push("");
+    L.push("WHAT THE PATIENT WAS TOLD");
+    L.push("Appetite returns, and weight regain is common after stopping. This was framed as the expected pharmacology of withdrawing an appetite-acting drug, not as a personal failure, and it was said plainly rather than softened.");
+    L.push("Where the drug was treating diabetes, glucose will need closer attention through the transition and the rest of the regimen may need adjusting.");
+    L.push("");
+    L.push("WHAT CARRIES OVER");
+    L.push("The protein target and the resistance training matter more after stopping, not less: they are what holds lean mass when the appetite signal goes away. Both were reviewed again at this visit.");
+    const b = this.bodyWeights();
+    if (b) {
+      const gkg = parseFloat(this.v("pr-gkg")) || 1.2;
+      const meals = parseInt(this.v("pr-meals")) || 4;
+      L.push("Protein target to continue: about " + Math.round((b.abw * gkg) / meals) + " g per meal, " + meals + " times a day.");
+    }
+    L.push("Training to continue at " + this.L().days + ".");
+    L.push("");
+    L.push("MONITORING THROUGH THE TRANSITION");
+    if (/diabetes|clinical reason/.test(why)) L.push("Glucose monitoring and review of the remaining regimen, with an interval set below.");
+    L.push("Weight and, where relevant, A1c and blood pressure at the follow-up interval.");
+    L.push("Antihypertensive and glucose-lowering doses reviewed, since requirements can change in either direction as weight moves.");
+    L.push("");
+    L.push("IF THIS IS ABOUT COST OR SUPPLY");
+    if (/cost|supply/.test(why)) {
+      L.push("Manufacturer savings and assistance options were reviewed with the patient, and the Coverage tab's letters are available if an appeal is worth running. A gap forced by cost is not a decision to stop treatment, and the record should say so.");
+    } else {
+      L.push("Not applicable to this stop.");
+    }
+    L.push("");
+    L.push("THE DOOR STAYS OPEN");
+    L.push("Restarting is available and was offered without conditions. The patient knows to contact the office if weight, glucose or symptoms move in a way that concerns them, rather than waiting for the next scheduled visit.");
+    out.textContent = L.join("\n");
+  },
+  copyStop(){
+    const why = this.v("pr-stopwhy");
+    if (!why) { toast("Pick why it is stopping first"); return; }
+    copyText(document.getElementById("pr-stop-out").textContent);
+  },
+  printStop(lang){
+    const es = lang === "es";
+    const L = [];
+    L.push(es ? "CUANDO EL MEDICAMENTO SE SUSPENDE" : "WHEN THE MEDICATION STOPS");
+    L.push("");
+    L.push(es ? "QUÉ ESPERAR" : "WHAT TO EXPECT");
+    L.push(es
+      ? "El apetito regresa. Es común volver a subir de peso. Esto es lo que hace el medicamento al dejarlo, no es culpa suya ni señal de que usted falló."
+      : "Your appetite comes back. Regaining weight is common. That is what happens when this medication stops. It is not your fault and it is not a sign that you failed.");
+    L.push("");
+    L.push(es ? "LO MÁS IMPORTANTE AHORA" : "WHAT MATTERS MOST NOW");
+    const b = this.bodyWeights();
+    const meals = parseInt(this.v("pr-meals")) || 4;
+    if (b) {
+      const per = Math.round((b.abw * (parseFloat(this.v("pr-gkg")) || 1.2)) / meals);
+      L.push(es
+        ? "1. Proteína: aproximadamente " + per + " gramos en cada comida, " + meals + " veces al día. Cómala primero."
+        : "1. Protein: about " + per + " g at each meal, " + meals + " times a day. Eat it first.");
+    } else {
+      L.push(es ? "1. Proteína en cada comida. Cómala primero." : "1. Protein at every meal. Eat it first.");
+    }
+    L.push(es
+      ? "2. Ejercicio de fuerza: " + this.L().daysEs + ". Esto es lo que conserva el músculo ahora que el medicamento ya no ayuda."
+      : "2. Strength work: " + this.L().days + ". This is what holds your muscle now that the medication is not helping.");
+    L.push("");
+    L.push(es ? "CUÁNDO LLAMARNOS" : "WHEN TO CALL US");
+    L.push(es
+      ? "Si tiene diabetes y su azúcar sube. Si se siente mareado. Si quiere volver a empezar el medicamento: puede hacerlo, solo llámenos."
+      : "If you have diabetes and your sugars climb. If you feel dizzy. If you want to restart the medication: you can, just call us.");
+    L.push("");
+    L.push(es
+      ? "Volver a empezar siempre es una opción y no hay que dar explicaciones."
+      : "Restarting is always an option, and no explanation is owed.");
+    App.printSheet(es ? "Cuando el medicamento se suspende" : "When the medication stops", L.join("\n"), lang);
+  },
+
+  // ---------- evidence ----------
+  evidence(){
+    const host = document.getElementById("pr-ev");
+    if (!host) return;
+    host.innerHTML = "";
+    PROTECT_DATA.EVIDENCE.forEach(e=>{
+      const sec = document.createElement("div"); sec.className = "comp-section";
+      const h4 = document.createElement("h4");
+      const nm = document.createElement("span"); nm.textContent = e.n;
+      const st = document.createElement("span");
+      st.className = "actbadge " + (/^strong/i.test(e.strength) ? "go" : "hold");
+      st.textContent = e.pillar;
+      h4.appendChild(nm); h4.appendChild(st); sec.appendChild(h4);
+      [["Claim", e.claim], ["Effect size", e.effect], ["Strength", e.strength], ["In clinic", e.use]].forEach(([k, v])=>{
+        const p = document.createElement("p");
+        p.style.cssText = "font-size:.86rem; margin-top:6px;";
+        const b = document.createElement("b"); b.textContent = k + ": ";
+        p.appendChild(b); p.appendChild(document.createTextNode(v));
+        sec.appendChild(p);
+      });
+      const btn = document.createElement("button");
+      btn.className = "btn small"; btn.style.marginTop = "9px"; btn.textContent = "Copy";
+      btn.onclick = ()=>copyText(e.n + ". " + e.claim + " " + e.effect + " Evidence: " + e.strength);
+      sec.appendChild(btn);
+      host.appendChild(sec);
+    });
+    const foot = document.createElement("p");
+    foot.className = "modfoot";
+    foot.textContent = "No trial citations or numeric effect sizes are reproduced here, because this build cannot reach a source to verify them. TODO before release: add the primary citations behind each card.";
+    host.appendChild(foot);
   }
 };
 
