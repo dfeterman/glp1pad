@@ -204,6 +204,17 @@
   .micbtn{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;}
   .micbtn.rec{background:var(--both); border-color:var(--both); color:#fff; animation:micpulse 1.2s infinite;}
   .micbtn-off{opacity:.6;}
+  /* FITT prescription grid. Frequency, Intensity, Time, Type as rows per
+     modality, so the four questions are always answered in the same order. */
+  .fitt{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:10px;}
+  .fitt-head{background:var(--accent-soft); color:var(--accent-ink); padding:7px 14px;
+    font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+  .fitt-row{display:grid; grid-template-columns:118px 1fr; gap:12px; padding:8px 14px; border-top:1px solid var(--line);}
+  .fitt-row:first-of-type{border-top:none;}
+  .fitt-k{font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; padding-top:2px;}
+  .fitt-v{font-size:.9rem;}
+  @media(max-width:620px){ .fitt-row{grid-template-columns:1fr; gap:2px;} }
+
   /* Stat tiles. These lived in RheumPad's joint-exam block, which the shell
      extraction dropped; the trend charts are the first thing here to use them. */
   .stat{background:var(--card); border:1px solid var(--line); border-radius:10px;
@@ -566,7 +577,7 @@
   </section>
 
   <section class="tab" id="tab-protect">
-    <p class="tab-intro">Weight comes off as fat and as lean mass together unless something is done about it. This tab is the something: a protein target, a training prescription, the bone and fall questions, a lifestyle plan the patient leaves holding, and a plan for the day the drug stops.</p>
+    <p class="tab-intro">Weight comes off as fat and as lean mass together unless something is done about it. This tab is the something: a protein target, an exercise prescription in FITT format, the bone and fall questions, a lifestyle plan the patient leaves holding, and a plan for the day the drug stops.</p>
 
     <h2 class="sect">Protein target</h2>
     <div class="comp-section">
@@ -599,7 +610,7 @@
       <div id="pr-foods"></div>
     </div>
 
-    <h2 class="sect">Resistance training</h2>
+    <h2 class="sect">Exercise prescription</h2>
     <div class="comp-section">
       <h4><span>Where is this patient starting</span></h4>
       <div class="pc-chips" id="pr-level"></div>
@@ -608,8 +619,8 @@
     <div id="pr-rx"></div>
     <div class="modal-actions" style="justify-content:flex-start;">
       <button class="btn primary" onclick="PROTECT.copyRx()">Copy the prescription</button>
-      <button class="btn" onclick="PROTECT.printRx('en')">Print the weekly plan</button>
-      <button class="btn" onclick="PROTECT.printRx('es')">Imprimir el plan semanal</button>
+      <button class="btn" onclick="PROTECT.printRx('en')">Print the plan</button>
+      <button class="btn" onclick="PROTECT.printRx('es')">Imprimir el plan</button>
     </div>
 
     <h2 class="sect">Bone, falls, and the things that get skipped</h2>
@@ -1761,7 +1772,41 @@ var PROTECT_DATA = {
        "Agarrado de un mostrador firme, pararse en un pie, 10 segundos de cada lado"
      ],
      progEs:"Agregue dos repeticiones a cada movimiento cuando la última se sienta fácil. Cuando llegue a 15 veces de pararse y sentarse, pase al siguiente nivel.",
-     careEs:"Es normal tener agujetas por uno o dos días después de un movimiento nuevo. El dolor agudo en una articulación no lo es: deje ese movimiento y avísenos."},
+     careEs:"Es normal tener agujetas por uno o dos días después de un movimiento nuevo. El dolor agudo en una articulación no lo es: deje ese movimiento y avísenos.",
+     fitt:{
+       "aer": {
+         "f": "3 days a week to start, most days once it is a habit",
+         "i": "Light. You can talk and still sing a line. About 2 to 3 out of 10 for effort.",
+         "t": "5 to 10 minutes at first. Build toward 20 to 30.",
+         "ty": "Walking. Marching seated in a chair if standing is hard. Anything that moves you and that you will actually repeat.",
+         "fEs": "3 días por semana para empezar, casi todos los días cuando ya sea costumbre",
+         "iEs": "Suave. Puede hablar y hasta cantar una frase. Como 2 a 3 de 10 de esfuerzo.",
+         "tEs": "5 a 10 minutos al principio. Suba hasta 20 o 30.",
+         "tyEs": "Caminar. Marchar sentado en una silla si pararse es difícil. Cualquier cosa que lo mueva y que de verdad vaya a repetir."
+       },
+       "res": {
+         "f": "2 days a week, with a day off in between",
+         "i": "Your own body weight. The last two repetitions should feel like work, not like a struggle.",
+         "t": "15 to 20 minutes",
+         "ty": "Sit to stand, wall push-up, heel raise, standing march",
+         "fEs": "2 días por semana, con un día de descanso en medio",
+         "iEs": "Su propio peso. Las últimas dos repeticiones deben costarle, pero sin llegar a la lucha.",
+         "tEs": "15 a 20 minutos",
+         "tyEs": "Pararse y sentarse, lagartijas en la pared, pararse de puntillas, marchar en el lugar"
+       },
+       "bal": {
+         "f": "Most days, attached to something you already do",
+         "i": "Hold a counter. Use less of your hand as it gets easier.",
+         "t": "A minute or two",
+         "ty": "Standing on one foot while brushing your teeth. Standing up without using your arms.",
+         "fEs": "Casi todos los días, pegado a algo que ya hace",
+         "iEs": "Agárrese del mostrador. Use menos la mano conforme se le haga más fácil.",
+         "tEs": "Un minuto o dos",
+         "tyEs": "Pararse en un pie mientras se cepilla los dientes. Levantarse sin usar los brazos."
+       },
+       "vp": "Add two repetitions, or two minutes of walking, whenever the last round felt easy. One change at a time, and never add minutes and effort in the same week.",
+       "vpEs": "Agregue dos repeticiones, o dos minutos de caminata, cuando la última vez se haya sentido fácil. Un cambio a la vez, y nunca suba minutos y esfuerzo en la misma semana."
+     }},
     {k:"some", n:"Some activity already",
      note:"Walking is happening; loading is not. This adds resistance without turning it into a project.",
      days:"2 to 3 days a week, 25 to 30 minutes",
@@ -1785,7 +1830,31 @@ var PROTECT_DATA = {
        "Cargar algo pesado por 30 segundos, dos veces"
      ],
      progEs:"Cuando la última serie llegue al número más alto y todavía le queden dos repeticiones, suba el peso. Primero el peso, después las repeticiones.",
-     careEs:"Deje dos repeticiones de reserva en cada serie. Llegar al fallo no sirve aquí y le cuesta la recuperación."},
+     careEs:"Deje dos repeticiones de reserva en cada serie. Llegar al fallo no sirve aquí y le cuesta la recuperación.",
+     fitt:{
+       "aer": {
+         "f": "4 to 5 days a week",
+         "i": "Moderate. You can talk in sentences but not sing. About 4 to 6 out of 10.",
+         "t": "Build toward 150 minutes across the week, in pieces of any length",
+         "ty": "Brisk walking, cycling, swimming, dancing",
+         "fEs": "4 a 5 días por semana",
+         "iEs": "Moderado. Puede hablar en frases pero no cantar. Como 4 a 6 de 10.",
+         "tEs": "Llegar a 150 minutos repartidos en la semana, en ratos de cualquier duración",
+         "tyEs": "Caminar rápido, bicicleta, natación, baile"
+       },
+       "res": {
+         "f": "2 to 3 days a week, not back to back",
+         "i": "A weight you could still lift about two more times when you stop the set",
+         "t": "25 to 30 minutes",
+         "ty": "Goblet squat, incline push-up, one-arm row, split squat, hip hinge, loaded carry",
+         "fEs": "2 a 3 días por semana, sin días seguidos",
+         "iEs": "Un peso con el que todavía podría hacer unas dos repeticiones más al terminar la serie",
+         "tEs": "25 a 30 minutos",
+         "tyEs": "Sentadilla con peso al pecho, lagartijas inclinadas, remo a un brazo, zancada, bisagra de cadera, cargar peso caminando"
+       },
+       "vp": "Add weight before you add repetitions. When the top of the range still leaves two repetitions in the tank, the weight is too light.",
+       "vpEs": "Suba el peso antes de subir las repeticiones. Si al llegar al número más alto todavía le quedan dos repeticiones, el peso está muy liviano."
+     }},
     {k:"reg", n:"Trains regularly",
      note:"The work is already happening. The job is protecting it against a calorie deficit, which is when people quietly reduce load and lose ground.",
      days:"3 to 4 days a week, 45 minutes",
@@ -1809,7 +1878,31 @@ var PROTECT_DATA = {
        "Cargar peso caminando o trabajo de abdomen, 2 series"
      ],
      progEs:"Mantenga el peso durante el déficit en lugar de buscar récords nuevos. Sostener la misma carga con un cuerpo que pesa menos ya es progreso.",
-     careEs:"La recuperación es más lenta con déficit, así que espere que el mismo peso se sienta más pesado. La proteína y el sueño ayudan más que agregar volumen."}
+     careEs:"La recuperación es más lenta con déficit, así que espere que el mismo peso se sienta más pesado. La proteína y el sueño ayudan más que agregar volumen.",
+     fitt:{
+       "aer": {
+         "f": "3 to 5 days a week",
+         "i": "Mostly moderate, with some harder sessions if you already tolerate them",
+         "t": "150 minutes moderate, or 75 vigorous, or any mix of the two",
+         "ty": "Whatever you already do and will keep doing",
+         "fEs": "3 a 5 días por semana",
+         "iEs": "Casi todo moderado, con algunas sesiones más fuertes si ya las tolera",
+         "tEs": "150 minutos moderados, o 75 fuertes, o cualquier combinación de los dos",
+         "tyEs": "Lo que ya hace y vaya a seguir haciendo"
+       },
+       "res": {
+         "f": "3 to 4 days a week",
+         "i": "6 to 10 repetitions, stopping with about two left in reserve",
+         "t": "45 minutes",
+         "ty": "A squat, a hinge, a push, a pull, and a carry",
+         "fEs": "3 a 4 días por semana",
+         "iEs": "6 a 10 repeticiones, parando con unas dos de reserva",
+         "tEs": "45 minutos",
+         "tyEs": "Una sentadilla, una bisagra de cadera, un empuje, un jalón y una carga"
+       },
+       "vp": "Hold the load through the deficit rather than chasing new records. Keeping the same weight on a body that weighs less is already progress, and it is the version of progress that protects muscle.",
+       "vpEs": "Mantenga la carga durante el déficit en lugar de buscar récords nuevos. Sostener el mismo peso con un cuerpo que pesa menos ya es progreso, y es la clase de progreso que protege el músculo."
+     }}
   ],
 
   FALL: [
@@ -3124,14 +3217,48 @@ const PROTECT = {
     host.innerHTML = "";
     const sec = document.createElement("div"); sec.className = "comp-section";
     const h4 = document.createElement("h4");
-    const nm = document.createElement("span"); nm.textContent = "The prescription";
+    const nm = document.createElement("span"); nm.textContent = "The prescription, in FITT format";
     const bg = document.createElement("span"); bg.className = "actbadge time"; bg.textContent = l.days;
     h4.appendChild(nm); h4.appendChild(bg); sec.appendChild(h4);
+    // FITT: frequency, intensity, time, type, asked in that order for each
+    // modality, so nothing gets answered by omission.
+    const MOD = [["aer","Aerobic"],["res","Resistance"],["bal","Balance"]];
+    MOD.forEach(([key, label])=>{
+      const m = l.fitt && l.fitt[key];
+      if (!m) return;
+      const box = document.createElement("div"); box.className = "fitt";
+      const hd = document.createElement("div"); hd.className = "fitt-head"; hd.textContent = label;
+      box.appendChild(hd);
+      [["Frequency", m.f], ["Intensity", m.i], ["Time", m.t], ["Type", m.ty]].forEach(([k, v])=>{
+        const row = document.createElement("div"); row.className = "fitt-row";
+        const kk = document.createElement("div"); kk.className = "fitt-k"; kk.textContent = k;
+        const vv = document.createElement("div"); vv.className = "fitt-v"; vv.textContent = v;
+        row.appendChild(kk); row.appendChild(vv); box.appendChild(row);
+      });
+      sec.appendChild(box);
+    });
+
+    const mv = document.createElement("div"); mv.className = "fitt";
+    const mh = document.createElement("div"); mh.className = "fitt-head"; mh.textContent = "Progression";
+    mv.appendChild(mh);
+    const mr = document.createElement("div"); mr.className = "fitt-row";
+    const mk2 = document.createElement("div"); mk2.className = "fitt-k"; mk2.textContent = "How to advance";
+    const mvv = document.createElement("div"); mvv.className = "fitt-v"; mvv.textContent = l.fitt ? l.fitt.vp : l.prog;
+    mr.appendChild(mk2); mr.appendChild(mvv); mv.appendChild(mr);
+    sec.appendChild(mv);
+
+    const det = document.createElement("details");
+    det.style.marginTop = "10px";
+    const sum = document.createElement("summary");
+    sum.style.cssText = "font-size:.8rem; color:var(--muted); cursor:pointer;";
+    sum.textContent = "The movements, written out";
+    det.appendChild(sum);
     const ul = document.createElement("ul");
-    ul.style.cssText = "font-size:.9rem; padding-left:20px; margin:4px 0 0;";
+    ul.style.cssText = "font-size:.9rem; padding-left:20px; margin:6px 0 0;";
     l.work.forEach(w=>{ const li = document.createElement("li"); li.textContent = w; li.style.marginBottom = "4px"; ul.appendChild(li); });
-    sec.appendChild(ul);
-    [["How it progresses", l.prog], ["What to tell them about soreness", l.care]].forEach(([k, t])=>{
+    det.appendChild(ul);
+    sec.appendChild(det);
+    [["What to tell them about soreness", l.care]].forEach(([k, t])=>{
       const p = document.createElement("p");
       p.style.cssText = "font-size:.88rem; margin-top:9px;";
       const b = document.createElement("b"); b.textContent = k + ": ";
@@ -3142,9 +3269,12 @@ const PROTECT = {
   },
   rxText(){
     const l = this.L();
-    return "Resistance training prescribed, starting level: " + l.n.toLowerCase() + ". " +
-      "Frequency " + l.days + ". Movements: " + l.work.join("; ") + ". " +
-      "Progression: " + l.prog + " " +
+    const f = l.fitt;
+    const part = (label, m)=> m ? label + " - frequency: " + m.f + "; intensity: " + m.i +
+      "; time: " + m.t + "; type: " + m.ty + ". " : "";
+    return "Exercise prescribed in FITT format. Starting level: " + l.n.toLowerCase() + ". " +
+      part("Aerobic", f && f.aer) + part("Resistance", f && f.res) + part("Balance", f && f.bal) +
+      "Progression: " + (f ? f.vp : l.prog) + " " +
       "Counseled on expected post-exertional soreness versus pain that should stop the movement. " +
       "Rationale for resistance training during pharmacologic weight loss was discussed, specifically preservation of lean mass and of the strength that keeps a patient independent.";
   },
@@ -3153,15 +3283,24 @@ const PROTECT = {
     const l = this.L();
     const es = lang === "es";
     const L = [];
-    L.push(es ? "SU PLAN DE FUERZA" : "YOUR STRENGTH PLAN");
+    L.push(es ? "SU PLAN DE EJERCICIO" : "YOUR EXERCISE PLAN");
     L.push("");
-    L.push((es ? "Cuántas veces: " : "How often: ") + (es ? l.daysEs : l.days));
-    L.push("");
-    L.push(es ? "QUÉ HACER" : "WHAT TO DO");
-    (es ? l.workEs : l.work).forEach((w, i)=>L.push((i + 1) + ". " + w));
-    L.push("");
+    const f = l.fitt;
+    const MODP = [["aer", es ? "RESISTENCIA (CAMINAR, BICICLETA)" : "AEROBIC (WALKING, CYCLING)"],
+                  ["res", es ? "FUERZA" : "STRENGTH"],
+                  ["bal", es ? "EQUILIBRIO" : "BALANCE"]];
+    MODP.forEach(([key, label])=>{
+      const m = f && f[key];
+      if (!m) return;
+      L.push(label);
+      L.push((es ? "Cada cuándo: " : "How often: ")  + (es ? m.fEs  : m.f));
+      L.push((es ? "Qué tan fuerte: " : "How hard: ") + (es ? m.iEs : m.i));
+      L.push((es ? "Cuánto tiempo: " : "How long: ")  + (es ? m.tEs : m.t));
+      L.push((es ? "Qué hacer: " : "What to do: ")    + (es ? m.tyEs : m.ty));
+      L.push("");
+    });
     L.push(es ? "CÓMO AVANZAR" : "HOW TO PROGRESS");
-    L.push(es ? l.progEs : l.prog);
+    L.push(f ? (es ? f.vpEs : f.vp) : (es ? l.progEs : l.prog));
     L.push("");
     L.push(es ? "QUÉ ES NORMAL Y QUÉ NO" : "WHAT IS NORMAL AND WHAT IS NOT");
     L.push(es ? l.careEs : l.care);
@@ -3175,7 +3314,7 @@ const PROTECT = {
     L.push(es
       ? "Si tiene dolor agudo en una articulación, dolor en el pecho, falta de aire inusual o mareo durante el ejercicio."
       : "Sharp joint pain, chest pain, unusual breathlessness, or dizziness during exercise.");
-    App.printSheet(es ? "Su plan de fuerza" : "Your strength plan", L.join("\n"), lang);
+    App.printSheet(es ? "Su plan de ejercicio" : "Your exercise plan", L.join("\n"), lang);
   },
 
   // ---------- falls ----------

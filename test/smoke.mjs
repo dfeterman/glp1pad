@@ -1,9 +1,26 @@
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const file = 'file://' + path.resolve(process.argv[2] || path.join(here, '..', 'glp1pad.html'));
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+// The preinstalled chromium's build number changes when the container is
+// rebuilt, so resolve it rather than pinning a path that goes stale.
+function findChromium() {
+  const root = '/opt/pw-browsers';
+  if (!fs.existsSync(root)) return undefined;
+  const dir = fs.readdirSync(root)
+    .filter(d => /^chromium-\d+$/.test(d))
+    .sort((a, b) => Number(b.split('-')[1]) - Number(a.split('-')[1]))[0];
+  if (!dir) return undefined;
+  // the inner folder has been 'chrome-linux' and 'chrome-linux64' across builds
+  for (const sub of ['chrome-linux64', 'chrome-linux']) {
+    const exe = path.join(root, dir, sub, 'chrome');
+    if (fs.existsSync(exe)) return exe;
+  }
+  return undefined;
+}
+const browser = await chromium.launch({ executablePath: findChromium() });
 const page = await browser.newPage();
 const errs = [];
 page.on('pageerror', e => errs.push('pageerror: ' + e.message));
@@ -245,6 +262,45 @@ checks.prRxEsPrints = await page.evaluate(() => {
   return !/(sets? of|times a week|repetitions|Soreness|feels easy|dumbbell|push-ups|minutes\b)/i.test(all);
 });
 
+// FITT: every level answers all four questions for each modality it carries
+checks.fittComplete = await page.evaluate(() =>
+  PROTECT_DATA.LEVELS.every(l => {
+    if (!l.fitt || !l.fitt.vp || !l.fitt.vpEs) return false;
+    return ['aer','res','bal'].every(k => {
+      const m = l.fitt[k];
+      if (!m) return k === 'bal';           // balance is optional, the other two are not
+      return ['f','i','t','ty'].every(x => m[x] && m[x + 'Es'] && m[x] !== m[x + 'Es']);
+    });
+  }) && PROTECT_DATA.LEVELS.every(l => l.fitt.aer && l.fitt.res));
+await page.click('nav.tabs button[data-tab="protect"]');
+await page.click('#pr-level .chip >> nth=0');
+const fittBoxes = await page.$$('#pr-rx .fitt');
+checks.fittRender = fittBoxes.length === 4;  // aerobic, resistance, balance, progression
+checks.fittRows = (await page.$$('#pr-rx .fitt-row')).length === 13;  // 4+4+4 plus progression
+const fittText = await page.innerText('#pr-rx');
+checks.fittLabels = ['FREQUENCY','INTENSITY','TIME','TYPE'].every(k => fittText.includes(k));
+// a level without balance shows three boxes, not a blank one
+await page.click('#pr-level .chip >> nth=1');
+checks.fittOptionalBal = (await page.$$('#pr-rx .fitt')).length === 3;
+await page.click('#pr-level .chip >> nth=0');
+// the note copies in FITT order
+checks.fittNote = await page.evaluate(() => {
+  const t = PROTECT.rxText();
+  return t.includes('FITT format') && t.includes('Aerobic - frequency:')
+    && t.indexOf('intensity:') < t.indexOf('time:') && t.indexOf('time:') < t.indexOf('type:');
+});
+// and the printed sheet carries the four questions, in both languages
+checks.fittPrintEn = await page.evaluate(() => {
+  const out = []; const o = App.printSheet;
+  App.printSheet = (t, b) => out.push(b); PROTECT.printRx('en'); App.printSheet = o;
+  return ['How often:','How hard:','How long:','What to do:','HOW TO PROGRESS'].every(k => out[0].includes(k));
+});
+checks.fittPrintEs = await page.evaluate(() => {
+  const out = []; const o = App.printSheet;
+  App.printSheet = (t, b) => out.push(b); PROTECT.printRx('es'); App.printSheet = o;
+  return ['SU PLAN DE EJERCICIO','Cada cuándo:','Qué tan fuerte:','Cuánto tiempo:','Qué hacer:','CÓMO AVANZAR'].every(k => out[0].includes(k))
+    && !/How often|How hard|repetitions|week\b/i.test(out[0]);
+});
 // --- tab 7 Educate ---
 await page.click('nav.tabs button[data-tab="educate"]');
 checks.eduCards = (await page.$$('#instr-grid .card')).length === 8;
